@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clustering Studio</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script defer src="../assets/common.js"></script>
+    <script defer src="../assets/clustering.js"></script>
+  </head>
+  <body data-page="clustering">
+    <div class="site-shell">
+      <header class="topbar">
+        <div class="brand">Machine Learning Studio</div>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="../index.html">Home</a>
+          <a href="./introduction.html">Estimation</a>
+          <a href="./classification.html">Classification</a>
+          <a href="./graphical-models.html">Graphical Models</a>
+          <a href="./clustering.html">Clustering</a>
+        </nav>
+      </header>
+
+      <section class="page-hero">
+        <div class="eyebrow">Clustering Methods</div>
+        <h1>Unlabeled data still has structure. The question is how you want to define it.</h1>
+        <p class="page-lead">
+          Partition-based methods chase compact groups, hierarchical methods record nested merges, DBSCAN looks for dense regions, and spectral clustering turns similarity into a graph partitioning problem.
+        </p>
+        <div class="chip-row">
+          <span class="chip">K-means</span>
+          <span class="chip">K-medoids</span>
+          <span class="chip">Hierarchical</span>
+          <span class="chip">DBSCAN + spectral</span>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 1</div>
+            <h2>Partition-based clustering: K-means and K-medoids</h2>
+          </div>
+          <p class="section-copy">
+            Both methods alternate assignment and representative updates. K-means uses centroids, while K-medoids requires the representative to stay on an actual data point and therefore resists outliers better.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-grid">
+              <div class="control-group">
+                <label for="partition-method">Method</label>
+                <select id="partition-method">
+                  <option value="kmeans">K-means</option>
+                  <option value="kmedoids">K-medoids</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="partition-k">Clusters</label>
+                <input id="partition-k" type="number" min="2" max="4" value="3" />
+              </div>
+              <div class="control-group">
+                <label for="partition-metric">Distance</label>
+                <select id="partition-metric">
+                  <option value="euclidean">Euclidean</option>
+                  <option value="manhattan">Manhattan</option>
+                </select>
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="partition-step">Next step</button>
+              <button class="button secondary" id="partition-reset">Reset</button>
+            </div>
+            <div class="callout" id="partition-callout"></div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="partition-plot" viewBox="0 0 560 280" aria-label="Partition clustering plot"></svg>
+            </div>
+            <div class="readout">
+              <div class="output-grid" id="partition-output"></div>
+            </div>
+            <div class="steps">
+              <ol id="partition-steps"></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 2</div>
+            <h2>Hierarchical clustering and distance measures</h2>
+          </div>
+          <p class="section-copy">
+            Agglomerative clustering starts with every point alone and merges the closest clusters. Change the linkage rule to see why single, complete, and average linkage produce different hierarchies.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-group">
+              <label for="hier-linkage">Linkage</label>
+              <select id="hier-linkage">
+                <option value="single">Single linkage</option>
+                <option value="complete">Complete linkage</option>
+                <option value="average">Average linkage</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="hier-step">Next merge</button>
+              <button class="button secondary" id="hier-reset">Reset hierarchy</button>
+            </div>
+            <div class="soft-box" id="hier-callout"></div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="hier-plot" viewBox="0 0 560 280" aria-label="Hierarchical clustering plot"></svg>
+            </div>
+            <div class="plot-card">
+              <svg id="dendrogram-plot" viewBox="0 0 560 280" aria-label="Dendrogram plot"></svg>
+            </div>
+            <div class="steps">
+              <ol id="hier-steps"></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 3</div>
+            <h2>Density-based clustering with DBSCAN</h2>
+          </div>
+          <p class="section-copy">
+            DBSCAN labels core points, expands dense regions, and leaves sparse outliers alone. It is useful when the clusters are irregularly shaped and you do not want to guess k in advance.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-grid">
+              <div class="control-group">
+                <label for="dbscan-eps">Neighborhood radius ε</label>
+                <input id="dbscan-eps" type="number" min="0.4" max="2.2" step="0.1" value="1.2" />
+              </div>
+              <div class="control-group">
+                <label for="dbscan-minpts">Minimum points</label>
+                <input id="dbscan-minpts" type="number" min="2" max="6" value="3" />
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="dbscan-step">Next DBSCAN step</button>
+              <button class="button secondary" id="dbscan-reset">Reset</button>
+            </div>
+            <div class="callout" id="dbscan-callout"></div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="dbscan-plot" viewBox="0 0 560 280" aria-label="DBSCAN plot"></svg>
+            </div>
+            <div class="readout">
+              <div class="output-grid" id="dbscan-output"></div>
+            </div>
+            <div class="steps">
+              <ol id="dbscan-steps"></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 4</div>
+            <h2>Spectral clustering</h2>
+          </div>
+          <p class="section-copy">
+            Convert the points into a similarity graph, compute the graph Laplacian, and split according to the second-smallest eigenvector. This is useful when the geometric shape is not well described by plain centroids.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-grid">
+              <div class="control-group">
+                <label for="spectral-sigma">Similarity width σ</label>
+                <input id="spectral-sigma" type="number" min="0.3" max="2.5" step="0.1" value="1" />
+              </div>
+              <div class="control-group">
+                <label for="spectral-threshold">Edge threshold</label>
+                <input id="spectral-threshold" type="number" min="0.05" max="0.8" step="0.05" value="0.2" />
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="spectral-run">Recompute spectral split</button>
+            </div>
+            <div class="soft-box" id="spectral-callout"></div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="spectral-plot" viewBox="0 0 560 280" aria-label="Spectral clustering plot"></svg>
+            </div>
+            <div class="plot-card">
+              <svg id="spectral-bars" viewBox="0 0 560 280" aria-label="Spectral embedding plot"></svg>
+            </div>
+            <div class="readout">
+              <ol id="spectral-steps"></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

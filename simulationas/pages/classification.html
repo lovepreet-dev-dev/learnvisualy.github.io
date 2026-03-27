@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classification Studio</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <script defer src="../assets/common.js"></script>
+    <script defer src="../assets/classification.js"></script>
+  </head>
+  <body data-page="classification">
+    <div class="site-shell">
+      <header class="topbar">
+        <div class="brand">Machine Learning Studio</div>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="../index.html">Home</a>
+          <a href="./introduction.html">Estimation</a>
+          <a href="./classification.html">Classification</a>
+          <a href="./graphical-models.html">Graphical Models</a>
+          <a href="./clustering.html">Clustering</a>
+        </nav>
+      </header>
+
+      <section class="page-hero">
+        <div class="eyebrow">Classification Methods</div>
+        <h1>Watch each classifier make its own type of argument.</h1>
+        <p class="page-lead">
+          The same labeled points can be explained by neighbours, splits, discriminant geometry, probabilistic scores, perceptron updates, or large-margin boundaries. These labs compare the logic directly.
+        </p>
+        <div class="chip-row">
+          <span class="chip">Nearest neighbour</span>
+          <span class="chip">Decision trees + CART</span>
+          <span class="chip">LDA + logistic + perceptron</span>
+          <span class="chip">Large margin + kernels + SVM</span>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 1</div>
+            <h2>Nearest neighbour classification</h2>
+          </div>
+          <p class="section-copy">
+            Move the query point, choose a distance metric, and reveal the nearest examples one by one. The classifier predicts from local evidence instead of a fitted global model.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-grid">
+              <div class="control-group">
+                <label for="knn-k">k neighbours</label>
+                <input id="knn-k" type="number" min="1" max="7" value="3" />
+              </div>
+              <div class="control-group">
+                <label for="knn-metric">Distance</label>
+                <select id="knn-metric">
+                  <option value="euclidean">Euclidean</option>
+                  <option value="manhattan">Manhattan</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="knn-query-x">Query x</label>
+                <input id="knn-query-x" type="number" min="0" max="10" step="0.1" value="5.4" />
+              </div>
+              <div class="control-group">
+                <label for="knn-query-y">Query y</label>
+                <input id="knn-query-y" type="number" min="0" max="10" step="0.1" value="4.4" />
+              </div>
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="knn-step">Next neighbour</button>
+              <button class="button secondary" id="knn-reset">Reset</button>
+            </div>
+            <div class="callout">
+              k-NN is lazy learning: there is no parameter fit up front. All the work happens at prediction time when the query point arrives.
+            </div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="knn-plot" viewBox="0 0 560 280" aria-label="k nearest neighbours plot"></svg>
+            </div>
+            <div class="readout">
+              <div class="output-grid" id="knn-output"></div>
+            </div>
+            <div class="steps">
+              <ol id="knn-steps"></ol>
+            </div>
+            <div class="table-panel">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Point</th>
+                    <th>Class</th>
+                    <th>Distance</th>
+                  </tr>
+                </thead>
+                <tbody id="knn-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 2</div>
+            <h2>Decision trees and CART splitting</h2>
+          </div>
+          <p class="section-copy">
+            Switch between classification and regression. The tree greedily chooses the split that most reduces impurity or squared error. Advance split by split and inspect why each threshold was selected.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-group">
+              <label for="tree-mode">Mode</label>
+              <select id="tree-mode">
+                <option value="classification">Classification tree</option>
+                <option value="regression">Regression tree</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="tree-depth">Maximum depth shown</label>
+              <input id="tree-depth" type="number" min="1" max="3" value="2" />
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="tree-step">Next split</button>
+              <button class="button secondary" id="tree-reset">Reset tree</button>
+            </div>
+            <div class="soft-box" id="tree-explainer"></div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="tree-plot" viewBox="0 0 560 280" aria-label="Decision tree plot"></svg>
+            </div>
+            <div class="readout">
+              <ol id="tree-steps"></ol>
+            </div>
+            <div class="mini-panel" id="tree-summary"></div>
+            <div class="table-panel">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Candidate</th>
+                    <th>Threshold</th>
+                    <th>Score</th>
+                    <th>Why it matters</th>
+                  </tr>
+                </thead>
+                <tbody id="tree-candidates"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab">
+        <div class="section-header">
+          <div>
+            <div class="eyebrow">Lab 3</div>
+            <h2>LDA, logistic regression, perceptrons, and margin-based learning</h2>
+          </div>
+          <p class="section-copy">
+            Train a linear separator in different ways. LDA uses class statistics, logistic regression optimizes probabilistic loss, the perceptron corrects mistakes, and the SVM-style option pushes for a margin.
+          </p>
+        </div>
+        <div class="lab-grid">
+          <div class="controls">
+            <div class="control-grid">
+              <div class="control-group">
+                <label for="linear-algorithm">Algorithm</label>
+                <select id="linear-algorithm">
+                  <option value="lda">Linear Discriminant Analysis</option>
+                  <option value="logistic">Logistic regression</option>
+                  <option value="perceptron">Perceptron</option>
+                  <option value="svm">Large margin / SVM-style</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="linear-dataset">Dataset</label>
+                <select id="linear-dataset">
+                  <option value="separable">Linearly separable</option>
+                  <option value="overlap">Overlapping classes</option>
+                  <option value="xor">XOR challenge</option>
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label for="feature-map">Feature representation</label>
+              <select id="feature-map">
+                <option value="linear">Original 2D space</option>
+                <option value="rbf">Kernel-style radial basis lift</option>
+              </select>
+            </div>
+            <div class="button-row">
+              <button class="button primary" id="linear-step">Train one step</button>
+              <button class="button secondary" id="linear-reset">Reset model</button>
+            </div>
+            <div class="callout" id="linear-callout"></div>
+          </div>
+          <div class="two-column">
+            <div class="plot-card">
+              <svg id="linear-plot" viewBox="0 0 560 280" aria-label="Linear classification plot"></svg>
+            </div>
+            <div class="readout">
+              <div class="output-grid" id="linear-output"></div>
+            </div>
+            <div class="steps">
+              <ol id="linear-steps"></ol>
+            </div>
+            <div class="mini-panel" id="kernel-panel"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
