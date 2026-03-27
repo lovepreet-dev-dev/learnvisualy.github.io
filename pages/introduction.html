@@ -3,18 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Estimation Studio</title>
+    <title>Foundations | Machine Learning Studio</title>
     <link rel="stylesheet" href="../assets/styles.css" />
     <script defer src="../assets/common.js"></script>
-    <script defer src="../assets/introduction.js"></script>
+    <script defer src="../assets/algorithms.js"></script>
+    <script defer src="../assets/catalog.js"></script>
   </head>
-  <body data-page="introduction">
+  <body data-page="category" data-category="foundations">
     <div class="site-shell">
       <header class="topbar">
         <div class="brand">Machine Learning Studio</div>
         <nav class="nav-links" aria-label="Main navigation">
           <a href="../index.html">Home</a>
-          <a href="./introduction.html">Estimation</a>
+          <a href="./introduction.html">Foundations</a>
           <a href="./classification.html">Classification</a>
           <a href="./graphical-models.html">Graphical Models</a>
           <a href="./clustering.html">Clustering</a>
@@ -23,260 +24,15 @@
 
       <section class="page-hero">
         <div class="eyebrow">Foundations</div>
-        <h1>Estimate distributions, then ask how trustworthy the estimate is.</h1>
+        <h1>Probability, estimation, uncertainty, and data quality.</h1>
         <p class="page-lead">
-          This page covers the opening block of the course: forms of learning, generative modeling, Gaussian parameter estimation, maximum likelihood, MAP, Bayesian updating, bias and variance, missing and noisy features, nonparametric density estimation, applications, and tools.
+          These pages cover the opening material: learning paradigms, generative modeling, estimation principles, bias-variance tradeoffs, noisy data handling, nonparametric density estimation, and the practical software stack.
         </p>
-        <div class="chip-row">
-          <span class="chip">Supervised vs unsupervised vs semi-supervised</span>
-          <span class="chip">Generative view</span>
-          <span class="chip">Posterior updates</span>
-          <span class="chip">KDE</span>
-        </div>
-      </section>
-
-      <section class="lab">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Lab 1</div>
-            <h2>Gaussian estimation, MLE, MAP, and Bayesian updating</h2>
-          </div>
-          <p class="section-copy">
-            Supply a sample set, define a prior over the mean, and walk through the logic that takes you from raw observations to MLE, MAP, and posterior beliefs.
-          </p>
-        </div>
-        <div class="lab-grid">
-          <div class="controls">
-            <div class="control-group">
-              <label for="gaussian-samples">Samples</label>
-              <textarea id="gaussian-samples">2.2, 1.7, 2.6, 1.9, 2.4, 2.1, 2.8</textarea>
-            </div>
-            <div class="control-grid">
-              <div class="control-group">
-                <label for="prior-mean">Prior mean</label>
-                <input id="prior-mean" type="number" step="0.1" value="1.5" />
-              </div>
-              <div class="control-group">
-                <label for="prior-variance">Prior variance</label>
-                <input id="prior-variance" type="number" step="0.1" min="0.1" value="0.9" />
-              </div>
-              <div class="control-group">
-                <label for="obs-variance">Observation variance</label>
-                <input id="obs-variance" type="number" step="0.1" min="0.1" value="0.6" />
-              </div>
-              <div class="control-group">
-                <label for="gaussian-range">View range</label>
-                <input id="gaussian-range" type="number" step="0.5" min="2" value="5" />
-              </div>
-            </div>
-            <div class="button-row">
-              <button class="button primary" id="gaussian-step">Next step</button>
-              <button class="button secondary" id="gaussian-reset">Reset steps</button>
-            </div>
-            <div class="callout">
-              Generative learning models how the data were produced. In this toy lab, the assumption is a Gaussian data source with a prior over its mean.
-            </div>
-          </div>
-          <div class="two-column">
-            <div class="plot-card">
-              <svg id="gaussian-plot" viewBox="0 0 560 280" aria-label="Gaussian estimation plot"></svg>
-            </div>
-            <div class="readout">
-              <div class="output-grid" id="gaussian-output"></div>
-            </div>
-            <div class="steps">
-              <ol id="gaussian-steps"></ol>
-            </div>
-            <div class="equation-card">
-              <h3>Learning forms</h3>
-              <div class="pill-list">
-                <span>Supervised: labeled targets</span>
-                <span>Unsupervised: hidden structure</span>
-                <span>Semi-supervised: few labels + many inputs</span>
-                <span>Generative: model joint distribution</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="lab">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Lab 2</div>
-            <h2>Bias, variance, and estimator quality</h2>
-          </div>
-          <p class="section-copy">
-            Shrink the estimator, change the sample size, and watch the bias-variance tradeoff move. The simulation reports bias, variance, and mean squared error separately.
-          </p>
-        </div>
-        <div class="lab-grid">
-          <div class="controls">
-            <div class="control-grid">
-              <div class="control-group">
-                <label for="true-mean">True mean</label>
-                <input id="true-mean" type="number" step="0.5" value="3" />
-              </div>
-              <div class="control-group">
-                <label for="true-std">True standard deviation</label>
-                <input id="true-std" type="number" step="0.1" min="0.2" value="1.2" />
-              </div>
-              <div class="control-group">
-                <label for="sample-size">Sample size</label>
-                <input id="sample-size" type="number" min="2" max="60" value="8" />
-              </div>
-              <div class="control-group">
-                <label for="simulations">Simulations</label>
-                <input id="simulations" type="number" min="20" max="1000" value="250" />
-              </div>
-            </div>
-            <div class="control-group">
-              <label for="shrinkage">Estimator shrinkage factor</label>
-              <div class="range-row">
-                <input id="shrinkage" type="range" min="0.2" max="1.4" step="0.05" value="0.9" />
-                <span class="range-value" id="shrinkage-value">0.90</span>
-              </div>
-            </div>
-            <div class="button-row">
-              <button class="button primary" id="bias-step">Next step</button>
-              <button class="button secondary" id="bias-reset">Reset steps</button>
-            </div>
-            <div class="soft-box">
-              The estimator used here is <span class="mono">μ̂ = c × sample_mean</span>. As <span class="mono">c</span> moves away from <span class="mono">1</span>, you inject bias but sometimes reduce variance.
-            </div>
-          </div>
-          <div class="two-column">
-            <div class="plot-card">
-              <svg id="bias-plot" viewBox="0 0 560 280" aria-label="Bias variance plot"></svg>
-            </div>
-            <div class="readout">
-              <div class="output-grid" id="bias-output"></div>
-            </div>
-            <div class="steps">
-              <ol id="bias-steps"></ol>
-            </div>
-            <div class="mini-panel" id="bias-sample-panel"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="lab">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Lab 3</div>
-            <h2>Missing features, noisy features, and cleanup choices</h2>
-          </div>
-          <p class="section-copy">
-            Preprocessing decisions change the data distribution before any model sees it. Compare mean imputation, median imputation, dropping incomplete samples, and a noise clamp.
-          </p>
-        </div>
-        <div class="lab-grid">
-          <div class="controls">
-            <div class="control-group">
-              <label for="cleanup-method">Missing-value strategy</label>
-              <select id="cleanup-method">
-                <option value="mean">Mean imputation</option>
-                <option value="median">Median imputation</option>
-                <option value="drop">Drop incomplete rows</option>
-              </select>
-            </div>
-            <div class="control-group">
-              <label for="noise-clamp">Clamp unusually noisy values at ± this z-score</label>
-              <div class="range-row">
-                <input id="noise-clamp" type="range" min="0.8" max="3" step="0.1" value="1.8" />
-                <span class="range-value" id="noise-clamp-value">1.8</span>
-              </div>
-            </div>
-            <div class="button-row">
-              <button class="button primary" id="cleanup-apply">Apply cleanup</button>
-            </div>
-            <div class="callout" id="cleanup-summary"></div>
-          </div>
-          <div class="two-column">
-            <div class="table-panel">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Example</th>
-                    <th>Feature A</th>
-                    <th>Feature B</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="cleanup-table"></tbody>
-              </table>
-            </div>
-            <div class="plot-card">
-              <svg id="cleanup-plot" viewBox="0 0 560 280" aria-label="Cleaned features plot"></svg>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="lab">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Lab 4</div>
-            <h2>Nonparametric density estimation with kernels</h2>
-          </div>
-          <p class="section-copy">
-            Kernel density estimation does not commit to a single Gaussian. Instead it centers a little kernel on every sample and adds them together. Adjust the bandwidth and reveal the contribution of each sample step by step.
-          </p>
-        </div>
-        <div class="lab-grid">
-          <div class="controls">
-            <div class="control-group">
-              <label for="kde-samples">1D samples</label>
-              <textarea id="kde-samples">0.9, 1.1, 1.8, 2.0, 2.1, 2.8, 3.1, 3.3, 4.4</textarea>
-            </div>
-            <div class="control-group">
-              <label for="kde-bandwidth">Bandwidth</label>
-              <div class="range-row">
-                <input id="kde-bandwidth" type="range" min="0.15" max="1.2" step="0.05" value="0.45" />
-                <span class="range-value" id="kde-bandwidth-value">0.45</span>
-              </div>
-            </div>
-            <div class="button-row">
-              <button class="button primary" id="kde-step">Next step</button>
-              <button class="button secondary" id="kde-reset">Reset steps</button>
-            </div>
-            <div class="equation-card">
-              <h3>Where this shows up</h3>
-              <p>Density estimation supports anomaly detection, sensor modeling, speech recognition, recommendation priors, robotics state estimation, and many other generative pipelines.</p>
-            </div>
-          </div>
-          <div class="two-column">
-            <div class="plot-card">
-              <svg id="kde-plot" viewBox="0 0 560 280" aria-label="Kernel density estimation plot"></svg>
-            </div>
-            <div class="readout">
-              <ol id="kde-steps"></ol>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section class="section">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Applications</div>
-            <h2>Software tools and where these ideas fit</h2>
-          </div>
-        </div>
-        <div class="info-grid">
-          <article class="info-card">
-            <h3>Python stack</h3>
-            <p>Use NumPy, SciPy, pandas, scikit-learn, PyMC, PyTorch, or TensorFlow when you want these ideas at scale. The browser labs on this site are built to teach the mechanics first.</p>
-          </article>
-          <article class="info-card">
-            <h3>Applications</h3>
-            <p>Estimators drive forecasting, medical risk modeling, industrial monitoring, adaptive filtering, finance, and scientific measurement wherever you need uncertainty-aware predictions.</p>
-          </article>
-          <article class="info-card">
-            <h3>Reading the outputs</h3>
-            <p>Do not stop at the point estimate. Compare priors, sample size, noise handling, and the smoothness of the density estimate before you trust any downstream classifier.</p>
-          </article>
-        </div>
+        <div id="category-banner"></div>
+        <div id="category-algorithms" class="algorithm-list"></div>
       </section>
     </div>
   </body>

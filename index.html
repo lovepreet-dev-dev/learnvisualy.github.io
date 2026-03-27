@@ -6,6 +6,8 @@
     <title>Machine Learning Studio</title>
     <link rel="stylesheet" href="./assets/styles.css" />
     <script defer src="./assets/common.js"></script>
+    <script defer src="./assets/algorithms.js"></script>
+    <script defer src="./assets/catalog.js"></script>
   </head>
   <body data-page="home">
     <div class="site-shell">
@@ -13,7 +15,7 @@
         <div class="brand">Machine Learning Studio</div>
         <nav class="nav-links" aria-label="Main navigation">
           <a href="./index.html">Home</a>
-          <a href="./pages/introduction.html">Estimation</a>
+          <a href="./pages/introduction.html">Foundations</a>
           <a href="./pages/classification.html">Classification</a>
           <a href="./pages/graphical-models.html">Graphical Models</a>
           <a href="./pages/clustering.html">Clustering</a>
@@ -22,41 +24,37 @@
 
       <section class="hero">
         <div class="hero-card">
-          <div class="eyebrow">Interactive Curriculum</div>
-          <h1>Learn machine learning by moving the knobs yourself.</h1>
+          <div class="eyebrow">Algorithm Atlas</div>
+          <h1>Open one algorithm at a time, manipulate its inputs, and inspect the math at every step.</h1>
           <p class="lead">
-            This site turns the syllabus into hands-on browser labs. Each page lets you manipulate inputs, run the algorithm one step at a time, and read the logic behind the update instead of staring at a static formula sheet.
+            The site is now organized as a dedicated page for each algorithm or core concept. Every page includes controls, step-by-step math, logic explanations, and a separate detailed explanation section at the bottom.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="./pages/introduction.html">Start with estimation</a>
-            <a class="button secondary" href="./pages/classification.html">Jump to classifiers</a>
+            <a class="button primary" href="./pages/introduction.html">Browse foundations</a>
+            <a class="button secondary" href="./pages/algorithm.html?id=nearest-neighbour">Open k-NN</a>
           </div>
           <div class="chip-row">
-            <span class="chip">Gaussian estimation</span>
-            <span class="chip">k-NN + trees + SVM</span>
-            <span class="chip">Bayesian networks + HMMs</span>
-            <span class="chip">K-means + DBSCAN + spectral</span>
+            <span class="chip">One page per algorithm</span>
+            <span class="chip">Math shown with substitutions</span>
+            <span class="chip">Step-by-step logic</span>
+            <span class="chip">Bottom deep-dive explanation</span>
           </div>
         </div>
 
         <aside class="hero-card hero-side">
-          <h3>How the studio is organized</h3>
-          <div class="stats-grid">
-            <div class="stat">
-              <strong>4</strong>
-              <span>topic pages</span>
+          <h3>What changed</h3>
+          <div class="hero-stat-list">
+            <div class="soft-box">
+              <strong>Dedicated routes</strong>
+              <p>Each algorithm has its own URL under the shared algorithm page shell.</p>
             </div>
-            <div class="stat">
-              <strong>14+</strong>
-              <span>interactive labs</span>
+            <div class="soft-box">
+              <strong>Interactive math</strong>
+              <p>Formula panels update with the actual numbers from the controls, not generic symbols only.</p>
             </div>
-            <div class="stat">
-              <strong>Step</strong>
-              <span>buttons reveal the algorithm logic</span>
-            </div>
-            <div class="stat">
-              <strong>Editable</strong>
-              <span>sliders, sample sets, and probability tables</span>
+            <div class="soft-box">
+              <strong>Deep explanation</strong>
+              <p>Every algorithm page ends with a longer explanation about intuition, equations, use cases, and failure modes.</p>
             </div>
           </div>
         </aside>
@@ -65,141 +63,28 @@
       <section class="section">
         <div class="section-header">
           <div>
-            <div class="eyebrow">Course Map</div>
-            <h2>From probability to structure learning</h2>
+            <div class="eyebrow">Categories</div>
+            <h2>Navigate by topic area</h2>
           </div>
           <p class="section-copy">
-            The pages follow the flow of a standard machine learning course: modeling distributions, classifying examples, reasoning over dependencies, and finding structure without labels.
+            Use the category pages if you want a structured path through the syllabus, or open a single algorithm directly from the lists below.
           </p>
         </div>
-        <div class="module-grid">
-          <article class="module-card">
-            <h3>Estimation and uncertainty</h3>
-            <p>Overview of machine learning, generative learning, Gaussian parameter estimation, MLE, MAP, Bayesian estimation, bias-variance tradeoffs, noisy or missing features, and nonparametric density estimation.</p>
-            <ul>
-              <li>Interactive Gaussian fitting with posterior updates</li>
-              <li>Bias, variance, and MSE simulation</li>
-              <li>KDE bandwidth exploration and data cleaning lab</li>
-            </ul>
-            <p><a class="button ghost" href="./pages/introduction.html">Open page</a></p>
-          </article>
-          <article class="module-card">
-            <h3>Classification methods</h3>
-            <p>Nearest neighbours, decision trees, LDA, logistic regression, perceptrons, large-margin learning, kernels, SVMs, and CART are grouped into visual classifiers you can train and inspect.</p>
-            <ul>
-              <li>k-NN neighbor voting by distance</li>
-              <li>Greedy tree splitting for classification and regression</li>
-              <li>Linear, discriminative, and margin-based training loops</li>
-            </ul>
-            <p><a class="button ghost" href="./pages/classification.html">Open page</a></p>
-          </article>
-          <article class="module-card">
-            <h3>Graphical and sequential models</h3>
-            <p>Bayesian networks, conditional independence, Markov random fields, inference in graphical models, belief propagation, Markov chains, hidden Markov models, Viterbi decoding, and parameter learning.</p>
-            <ul>
-              <li>d-separation explorer</li>
-              <li>Message passing on a factor graph</li>
-              <li>Forward, Viterbi, and Baum-Welch style updates for HMMs</li>
-            </ul>
-            <p><a class="button ghost" href="./pages/graphical-models.html">Open page</a></p>
-          </article>
-          <article class="module-card">
-            <h3>Clustering methods</h3>
-            <p>Partitioned clustering, hierarchical clustering, distance measures, density-based clustering, and spectral clustering are treated as geometric or graph-partition problems you can run in steps.</p>
-            <ul>
-              <li>K-means and K-medoids iteration loop</li>
-              <li>Agglomerative merge history and dendrogram</li>
-              <li>DBSCAN and spectral graph splitting</li>
-            </ul>
-            <p><a class="button ghost" href="./pages/clustering.html">Open page</a></p>
-          </article>
-        </div>
+        <div id="home-categories" class="catalog-grid"></div>
       </section>
 
       <section class="section">
         <div class="section-header">
           <div>
-            <div class="eyebrow">Learning Design</div>
-            <h2>Each lab follows the same loop</h2>
+            <div class="eyebrow">All Pages</div>
+            <h2>Algorithm-by-algorithm index</h2>
           </div>
         </div>
-        <div class="info-grid">
-          <article class="info-card">
-            <h3>1. Manipulate inputs</h3>
-            <p>Adjust sample sets, priors, loss parameters, cluster counts, observation sequences, or neighborhood radii before the algorithm runs.</p>
-          </article>
-          <article class="info-card">
-            <h3>2. Advance one step</h3>
-            <p>Use the step controls to reveal sorting, assignment, message passing, split selection, parameter updates, or posterior inference one action at a time.</p>
-          </article>
-          <article class="info-card">
-            <h3>3. Read the logic</h3>
-            <p>The explanation panels translate every update into plain language: what changed, why it changed, and what would happen if you changed the input again.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Coverage</div>
-            <h2>Topics included in the studio</h2>
-          </div>
-        </div>
-        <div class="summary-grid">
-          <article class="summary-card">
-            <h3>Foundations</h3>
-            <ul>
-              <li>Overview of machine learning and forms of learning</li>
-              <li>Generative learning and Gaussian models</li>
-              <li>MLE, MAP, Bayesian estimation</li>
-              <li>Bias and variance of estimators</li>
-              <li>Missing and noisy features</li>
-              <li>Nonparametric density estimation</li>
-              <li>Applications and software tools</li>
-            </ul>
-          </article>
-          <article class="summary-card">
-            <h3>Classification</h3>
-            <ul>
-              <li>Nearest neighbour</li>
-              <li>Decision trees and CART</li>
-              <li>Linear Discriminant Analysis</li>
-              <li>Logistic regression</li>
-              <li>Perceptrons</li>
-              <li>Large-margin classification</li>
-              <li>Kernel methods and SVMs</li>
-            </ul>
-          </article>
-          <article class="summary-card">
-            <h3>Structured models</h3>
-            <ul>
-              <li>Bayesian networks</li>
-              <li>Conditional independence</li>
-              <li>Markov random fields</li>
-              <li>Inference and belief propagation</li>
-              <li>Markov models</li>
-              <li>Hidden Markov models</li>
-              <li>Decoding and parameter learning</li>
-            </ul>
-          </article>
-          <article class="summary-card">
-            <h3>Clustering</h3>
-            <ul>
-              <li>Partition-based clustering</li>
-              <li>K-means and K-medoids</li>
-              <li>Hierarchical clustering</li>
-              <li>Agglomerative and divisive ideas</li>
-              <li>Distance measures</li>
-              <li>DBSCAN</li>
-              <li>Spectral clustering</li>
-            </ul>
-          </article>
-        </div>
+        <div id="home-algorithms" class="algorithm-list"></div>
       </section>
 
       <p class="footer-note">
-        Open any module page and work through the controls. Everything runs locally in the browser, so you can modify the inputs without installing anything else.
+        Open any algorithm and use the step controls repeatedly. The page math, visuals, and explanation cards update together so the derivation stays connected to the behavior.
       </p>
     </div>
   </body>

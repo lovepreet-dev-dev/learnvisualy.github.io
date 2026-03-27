@@ -563,6 +563,188 @@ td code,
   line-height: 1.7;
 }
 
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.breadcrumbs a {
+  text-decoration: none;
+}
+
+.catalog-grid,
+.algorithm-list,
+.related-grid,
+.detail-grid,
+.math-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.catalog-grid,
+.related-grid,
+.detail-grid,
+.math-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.algorithm-list {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.algorithm-card,
+.detail-card,
+.formula-card,
+.related-card,
+.category-banner,
+.algorithm-shell {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.algorithm-card,
+.detail-card,
+.formula-card,
+.related-card,
+.category-banner {
+  padding: 22px;
+}
+
+.algorithm-card h3,
+.detail-card h3,
+.formula-card h3,
+.related-card h3,
+.category-banner h3 {
+  margin-bottom: 12px;
+}
+
+.algorithm-card p,
+.detail-card p,
+.formula-card p,
+.related-card p,
+.category-banner p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.algorithm-card .meta,
+.category-banner .meta,
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.meta span,
+.detail-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.algorithm-shell {
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.algorithm-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+  gap: 24px;
+}
+
+.algorithm-hero-side {
+  display: grid;
+  gap: 16px;
+}
+
+.workspace-note {
+  color: var(--muted);
+  line-height: 1.72;
+  margin-top: 14px;
+}
+
+.formula-card code,
+.detail-card code,
+.related-card code,
+.algorithm-card code {
+  font-family: var(--mono);
+}
+
+.formula {
+  display: block;
+  padding: 12px 14px;
+  margin-top: 10px;
+  border-radius: 16px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  overflow-x: auto;
+}
+
+.section-intro {
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 0 0 18px;
+}
+
+.table-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.step-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.dense-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.72;
+}
+
+.dense-list li + li {
+  margin-top: 8px;
+}
+
+.hero-stat-list {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-stat-list .soft-box {
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.related-card a,
+.algorithm-card a,
+.category-banner a {
+  text-decoration: none;
+}
+
+@media (max-width: 980px) {
+  .algorithm-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
 .svg-label {
   font-size: 12px;
   fill: var(--muted);
