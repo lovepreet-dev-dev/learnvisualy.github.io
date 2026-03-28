@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Backpropagation Canvas</title>
+    <style>
+        :root {
+            --bg-dark: #0f0f1a;
+            --panel-bg: #1e1e2f;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --color-input: #3b82f6;
+            /* Blue */
+            --color-hidden: #a855f7;
+            /* Purple */
+            --color-output: #f97316;
+            /* Orange */
+            --color-loss: #ef4444;
+            /* Red */
+            --color-active: #fde047;
+            /* Bright Yellow */
+            --color-forward: #3b82f6;
+            /* Blue border for forward */
+            --color-backward: #f97316;
+            /* Orange/Red border for backward */
+            --color-update: #22c55e;
+            /* Green border for update */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Panel: Graph */
+        #top-panel {
+            flex: 6;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 50vh;
+            border-bottom: 2px solid #2a2a40;
+        }
+
+        #controls {
+            padding: 15px 20px;
+            background-color: #131320;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a40;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: #2a2a40;
+            color: white;
+            border: 1px solid #3f3f5a;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background-color: #3f3f5a;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .play-btn {
+            background-color: var(--color-update);
+            border-color: #16a34a;
+        }
+
+        .play-btn:hover {
+            background-color: #16a34a;
+        }
+
+        .status-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .phase-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: var(--panel-bg);
+            border: 1px solid #3f3f5a;
+        }
+
+        #progress-container {
+            width: 100%;
+            height: 4px;
+            background-color: #2a2a40;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--color-active);
+            transition: width 0.3s ease;
+        }
+
+        #svg-container {
+            flex: 1;
+            width: 100%;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #151525;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            min-width: 900px;
+        }
+
+        /* SVG Element Styles */
+        .node {
+            transition: all 0.3s ease;
+            stroke: var(--bg-dark);
+            stroke-width: 4px;
+        }
+
+        .node-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            fill: white;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .node-label {
+            font-size: 16px;
+            fill: var(--text-main);
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .edge {
+            stroke: #3f3f5a;
+            stroke-width: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .edge:hover {
+            stroke: #6b7280;
+            stroke-width: 4px;
+        }
+
+        .edge-label {
+            font-size: 12px;
+            fill: #475569;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 4px var(--bg-dark), 0 0 4px var(--bg-dark);
+        }
+
+        /* Active states */
+        .node.active {
+            stroke: var(--color-active);
+            stroke-width: 5px;
+            filter: drop-shadow(0 0 10px var(--color-active));
+            animation: pulse 1.5s infinite;
+        }
+
+        .edge.active {
+            stroke: var(--color-active);
+            stroke-width: 4px;
+            filter: drop-shadow(0 0 5px var(--color-active));
+        }
+
+        .edge-label.active {
+            fill: var(--color-active);
+            font-size: 16px;
+            text-shadow: 0 0 8px #000;
+            z-index: 10;
+        }
+
+        @keyframes pulse {
+            0% {
+                filter: drop-shadow(0 0 5px var(--color-active));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 15px var(--color-active));
+            }
+
+            100% {
+                filter: drop-shadow(0 0 5px var(--color-active));
+            }
+        }
+
+        /* Bottom Panel: Step Details */
+        #bottom-panel {
+            flex: 4;
+            background-color: var(--bg-dark);
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .card {
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 1000px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-left: 5px solid transparent;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card.forward {
+            border-left-color: var(--color-forward);
+        }
+
+        .card.backward {
+            border-left-color: var(--color-backward);
+        }
+
+        .card.update {
+            border-left-color: var(--color-update);
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .forward .step-title {
+            color: #60a5fa;
+        }
+
+        .backward .step-title {
+            color: #fb923c;
+        }
+
+        .update .step-title {
+            color: #4ade80;
+        }
+
+        .math-line {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 1.15rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .math-line .sub {
+            color: #94a3b8;
+            font-size: 1.05rem;
+            margin-top: 8px;
+            display: block;
+            border-top: 1px dashed #3f3f5a;
+            padding-top: 8px;
+        }
+
+        .math-result {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            margin-top: 12px;
+            display: block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            border-radius: 4px;
+        }
+
+        .forward .math-result {
+            color: #93c5fd;
+        }
+
+        .backward .math-result {
+            color: #fdba74;
+        }
+
+        .update .math-result {
+            color: #86efac;
+        }
+
+        .logic-text {
+            margin-top: 15px;
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            padding-top: 15px;
+            border-top: 1px solid #3f3f5a;
+        }
+
+        .logic-text b {
+            color: #e2e8f0;
+        }
+
+        .logic-text i {
+            color: #a78bfa;
+        }
+
+        /* Accent for math concepts */
+
+        .active-nodes-info {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--color-active);
+            font-weight: bold;
+        }
+
+        /* Highlight box for vanishing gradient */
+        .highlight-box {
+            margin-top: 20px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 15px;
+            border-radius: 6px;
+            color: #fca5a5;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+
+        .highlight-box strong {
+            color: #f87171;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Summary Table */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #3f3f5a;
+            padding: 10px 15px;
+            text-align: left;
+        }
+
+        .summary-table th {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .summary-table td {
+            font-family: 'Courier New', Courier, monospace;
+            color: #cbd5e1;
+        }
+
+        @media (max-width: 768px) {
+            #controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .status-area {
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+
+            #svg-container {
+                align-items: flex-start;
+            }
+
+            .math-line {
+                font-size: 0.9rem;
+            }
+
+            .math-result {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Half: Diagram -->
+    <div id="top-panel">
+        <div id="controls">
+            <div class="btn-group">
+                <button id="btn-play" class="play-btn">▶ Start</button>
+                <button id="btn-pause">⏸ Pause</button>
+                <button id="btn-prev">⏮ Prev</button>
+                <button id="btn-next">⏭ Next</button>
+                <button id="btn-reset">🔄 Reset</button>
+            </div>
+            <div class="status-area">
+                <span id="step-counter" class="phase-badge" style="background: transparent; border: none;">Step 0 /
+                    21</span>
+                <span id="phase-label" class="phase-badge">Ready</span>
+            </div>
+        </div>
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+
+        <div id="svg-container">
+            <!-- Increased dimensions for spacing -->
+            <svg id="network-svg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet">
+                <defs></defs>
+                <g id="edges-layer"></g>
+                <g id="nodes-layer"></g>
+                <g id="labels-layer"></g>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Bottom Half: Details Panel -->
+    <div id="bottom-panel">
+        <div id="step-card" class="card">
+            <div id="card-title" class="step-title">Welcome</div>
+            <div class="math-line">
+                <div id="card-formula">Click 'Start' or 'Next' to begin the animation.</div>
+                <div id="card-substituted" class="sub"></div>
+                <div id="card-result" class="math-result"></div>
+            </div>
+            <div id="card-active-nodes" class="active-nodes-info"></div>
+            <div id="card-logic" class="logic-text">This will walk through a 4-layer neural network's forward pass,
+                backpropagation, and weight update using the <b>multi-variable chain rule</b>.</div>
+            <div id="card-extra"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. DATA STRUCTURE: Nodes, Edges, Steps
+        // ==========================================
+
+        // Increased coordinates to spread out the network
+        const networkData = {
+            nodes: [
+                { id: 'x1', x: 150, y: 200, color: 'var(--color-input)', label: 'x₁', val: '0.500' },
+                { id: 'x2', x: 150, y: 400, color: 'var(--color-input)', label: 'x₂', val: '0.300' },
+
+                { id: 'h1_1', x: 450, y: 100, color: 'var(--color-hidden)', label: 'h⁽¹⁾₁', val: '0.000' },
+                { id: 'h1_2', x: 450, y: 300, color: 'var(--color-hidden)', label: 'h⁽¹⁾₂', val: '0.000' },
+                { id: 'h1_3', x: 450, y: 500, color: 'var(--color-hidden)', label: 'h⁽¹⁾₃', val: '0.000' },
+
+                { id: 'h2_1', x: 750, y: 100, color: 'var(--color-hidden)', label: 'h⁽²⁾₁', val: '0.000' },
+                { id: 'h2_2', x: 750, y: 300, color: 'var(--color-hidden)', label: 'h⁽²⁾₂', val: '0.000' },
+                { id: 'h2_3', x: 750, y: 500, color: 'var(--color-hidden)', label: 'h⁽²⁾₃', val: '0.000' },
+
+                { id: 'o1', x: 1050, y: 200, color: 'var(--color-output)', label: 'o₁', val: '0.000' },
+                { id: 'o2', x: 1050, y: 400, color: 'var(--color-output)', label: 'o₂', val: '0.000' }
+            ],
+            edges: [
+                // W1 (Input -> Hidden 1)
+                { id: 'x1-h1_1', src: 'x1', dst: 'h1_1', w: '0.2' }, { id: 'x2-h1_1', src: 'x2', dst: 'h1_1', w: '0.4' },
+                { id: 'x1-h1_2', src: 'x1', dst: 'h1_2', w: '0.3' }, { id: 'x2-h1_2', src: 'x2', dst: 'h1_2', w: '0.1' },
+                { id: 'x1-h1_3', src: 'x1', dst: 'h1_3', w: '0.5' }, { id: 'x2-h1_3', src: 'x2', dst: 'h1_3', w: '0.2' },
+                // W2 (Hidden 1 -> Hidden 2)
+                { id: 'h1_1-h2_1', src: 'h1_1', dst: 'h2_1', w: '0.3' }, { id: 'h1_2-h2_1', src: 'h1_2', dst: 'h2_1', w: '0.2' }, { id: 'h1_3-h2_1', src: 'h1_3', dst: 'h2_1', w: '0.4' },
+                { id: 'h1_1-h2_2', src: 'h1_1', dst: 'h2_2', w: '0.1' }, { id: 'h1_2-h2_2', src: 'h1_2', dst: 'h2_2', w: '0.5' }, { id: 'h1_3-h2_2', src: 'h1_3', dst: 'h2_2', w: '0.3' },
+                { id: 'h1_1-h2_3', src: 'h1_1', dst: 'h2_3', w: '0.4' }, { id: 'h1_2-h2_3', src: 'h1_2', dst: 'h2_3', w: '0.2' }, { id: 'h1_3-h2_3', src: 'h1_3', dst: 'h2_3', w: '0.1' },
+                // W3 (Hidden 2 -> Output)
+                { id: 'h2_1-o1', src: 'h2_1', dst: 'o1', w: '0.6' }, { id: 'h2_2-o1', src: 'h2_2', dst: 'o1', w: '0.1' }, { id: 'h2_3-o1', src: 'h2_3', dst: 'o1', w: '0.3' },
+                { id: 'h2_1-o2', src: 'h2_1', dst: 'o2', w: '0.2' }, { id: 'h2_2-o2', src: 'h2_2', dst: 'o2', w: '0.4' }, { id: 'h2_3-o2', src: 'h2_3', dst: 'o2', w: '0.5' }
+            ]
+        };
+
+        const stepsData = [
+            // --- FORWARD PASS ---
+            {
+                phase: 'forward',
+                title: 'Step 1: Compute Hidden 1 Neuron 1',
+                formula: 'z<sub>1</sub><sup>(1)</sup> = W<sub>1</sub><sup>(1)</sup> &middot; [x<sub>1</sub>, x<sub>2</sub>]<br>h<sub>1</sub><sup>(1)</sup> = &sigma;(z<sub>1</sub><sup>(1)</sup>)',
+                substituted: 'z<sub>1</sub><sup>(1)</sup> = 0.2 &times; 0.5 + 0.4 &times; 0.3 = 0.10 + 0.12 = 0.220<br>h<sub>1</sub><sup>(1)</sup> = &sigma;(0.220)',
+                result: 'h<sub>1</sub><sup>(1)</sup> = 0.5548',
+                logic: 'First neuron of Hidden Layer 1. The input vector is dotted with the first row of weight matrix W<sup>(1)</sup>. The pre-activation sum (z) is passed through the <i>Sigmoid</i> function &sigma;(z) = 1 / (1 + e<sup>-z</sup>).',
+                activeNodes: ['x1', 'x2', 'h1_1'],
+                activeEdges: ['x1-h1_1', 'x2-h1_1'],
+                updates: { 'h1_1': '0.5548' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 2: Compute Hidden 1 Neuron 2',
+                formula: 'z<sub>2</sub><sup>(1)</sup> = W<sub>2</sub><sup>(1)</sup> &middot; [x<sub>1</sub>, x<sub>2</sub>]<br>h<sub>2</sub><sup>(1)</sup> = &sigma;(z<sub>2</sub><sup>(1)</sup>)',
+                substituted: 'z<sub>2</sub><sup>(1)</sup> = 0.3 &times; 0.5 + 0.1 &times; 0.3 = 0.15 + 0.03 = 0.180<br>h<sub>2</sub><sup>(1)</sup> = &sigma;(0.180)',
+                result: 'h<sub>2</sub><sup>(1)</sup> = 0.5449',
+                logic: 'Second neuron of Hidden Layer 1. Same dot product process using the second row of weights.',
+                activeNodes: ['x1', 'x2', 'h1_2'],
+                activeEdges: ['x1-h1_2', 'x2-h1_2'],
+                updates: { 'h1_2': '0.5449' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 3: Compute Hidden 1 Neuron 3',
+                formula: 'z<sub>3</sub><sup>(1)</sup> = W<sub>3</sub><sup>(1)</sup> &middot; [x<sub>1</sub>, x<sub>2</sub>]<br>h<sub>3</sub><sup>(1)</sup> = &sigma;(z<sub>3</sub><sup>(1)</sup>)',
+                substituted: 'z<sub>3</sub><sup>(1)</sup> = 0.5 &times; 0.5 + 0.2 &times; 0.3 = 0.25 + 0.06 = 0.310<br>h<sub>3</sub><sup>(1)</sup> = &sigma;(0.310)',
+                result: 'h<sub>3</sub><sup>(1)</sup> = 0.5769',
+                logic: 'Third neuron of Hidden Layer 1. Note how larger incoming weights result in a larger z value, pushing the activation closer to 1.',
+                activeNodes: ['x1', 'x2', 'h1_3'],
+                activeEdges: ['x1-h1_3', 'x2-h1_3'],
+                updates: { 'h1_3': '0.5769' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 4: Compute Hidden 2 Neuron 1',
+                formula: 'z<sub>1</sub><sup>(2)</sup> = W<sub>1</sub><sup>(2)</sup> &middot; [h<sub>1</sub><sup>(1)</sup>, h<sub>2</sub><sup>(1)</sup>, h<sub>3</sub><sup>(1)</sup>]<br>h<sub>1</sub><sup>(2)</sup> = &sigma;(z<sub>1</sub><sup>(2)</sup>)',
+                substituted: 'z<sub>1</sub><sup>(2)</sup> = 0.3 &times; 0.5548 + 0.2 &times; 0.5449 + 0.4 &times; 0.5769<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 0.1664 + 0.1090 + 0.2308 = 0.5062',
+                result: 'h<sub>1</sub><sup>(2)</sup> = 0.6240',
+                logic: 'Moving to Hidden Layer 2. The outputs of Hidden Layer 1 now act as the inputs. We dot product them with W<sup>(2)</sup> weights.',
+                activeNodes: ['h1_1', 'h1_2', 'h1_3', 'h2_1'],
+                activeEdges: ['h1_1-h2_1', 'h1_2-h2_1', 'h1_3-h2_1'],
+                updates: { 'h2_1': '0.6240' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 5: Compute Hidden 2 Neuron 2',
+                formula: 'z<sub>2</sub><sup>(2)</sup> = W<sub>2</sub><sup>(2)</sup> &middot; [h<sub>1</sub><sup>(1)</sup>, h<sub>2</sub><sup>(1)</sup>, h<sub>3</sub><sup>(1)</sup>]<br>h<sub>2</sub><sup>(2)</sup> = &sigma;(z<sub>2</sub><sup>(2)</sup>)',
+                substituted: 'z<sub>2</sub><sup>(2)</sup> = 0.1 &times; 0.5548 + 0.5 &times; 0.5449 + 0.3 &times; 0.5769<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 0.0555 + 0.2725 + 0.1731 = 0.5011',
+                result: 'h<sub>2</sub><sup>(2)</sup> = 0.6227',
+                logic: 'Second neuron in Hidden Layer 2 computed using its respective connections from Layer 1.',
+                activeNodes: ['h1_1', 'h1_2', 'h1_3', 'h2_2'],
+                activeEdges: ['h1_1-h2_2', 'h1_2-h2_2', 'h1_3-h2_2'],
+                updates: { 'h2_2': '0.6227' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 6: Compute Hidden 2 Neuron 3',
+                formula: 'z<sub>3</sub><sup>(2)</sup> = W<sub>3</sub><sup>(2)</sup> &middot; [h<sub>1</sub><sup>(1)</sup>, h<sub>2</sub><sup>(1)</sup>, h<sub>3</sub><sup>(1)</sup>]<br>h<sub>3</sub><sup>(2)</sup> = &sigma;(z<sub>3</sub><sup>(2)</sup>)',
+                substituted: 'z<sub>3</sub><sup>(2)</sup> = 0.4 &times; 0.5548 + 0.2 &times; 0.5449 + 0.1 &times; 0.5769<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 0.2219 + 0.1090 + 0.0577 = 0.3886',
+                result: 'h<sub>3</sub><sup>(2)</sup> = 0.5959',
+                logic: 'Third neuron of Hidden Layer 2 computed.',
+                activeNodes: ['h1_1', 'h1_2', 'h1_3', 'h2_3'],
+                activeEdges: ['h1_1-h2_3', 'h1_2-h2_3', 'h1_3-h2_3'],
+                updates: { 'h2_3': '0.5959' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 7: Compute Output Neuron 1',
+                formula: 'z<sub>1</sub><sup>(3)</sup> = W<sub>1</sub><sup>(3)</sup> &middot; [h<sub>1</sub><sup>(2)</sup>, h<sub>2</sub><sup>(2)</sup>, h<sub>3</sub><sup>(2)</sup>]<br>o<sub>1</sub> = &sigma;(z<sub>1</sub><sup>(3)</sup>)',
+                substituted: 'z<sub>1</sub><sup>(3)</sup> = 0.6 &times; 0.6240 + 0.1 &times; 0.6227 + 0.3 &times; 0.5959<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 0.3744 + 0.0623 + 0.1788 = 0.6155',
+                result: 'o<sub>1</sub> = 0.6491',
+                logic: 'First final output prediction computed. The network is predicting 0.6491, but the target (y₁) is 1.0.',
+                activeNodes: ['h2_1', 'h2_2', 'h2_3', 'o1'],
+                activeEdges: ['h2_1-o1', 'h2_2-o1', 'h2_3-o1'],
+                updates: { 'o1': '0.6491' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 8: Compute Output Neuron 2',
+                formula: 'z<sub>2</sub><sup>(3)</sup> = W<sub>2</sub><sup>(3)</sup> &middot; [h<sub>1</sub><sup>(2)</sup>, h<sub>2</sub><sup>(2)</sup>, h<sub>3</sub><sup>(2)</sup>]<br>o<sub>2</sub> = &sigma;(z<sub>2</sub><sup>(3)</sup>)',
+                substituted: 'z<sub>2</sub><sup>(3)</sup> = 0.2 &times; 0.6240 + 0.4 &times; 0.6227 + 0.5 &times; 0.5959<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 0.1248 + 0.2491 + 0.2980 = 0.6719',
+                result: 'o<sub>2</sub> = 0.6619',
+                logic: 'Second final output prediction computed. Network predicts 0.6619, target (y₂) is 0.0.',
+                activeNodes: ['h2_1', 'h2_2', 'h2_3', 'o2'],
+                activeEdges: ['h2_1-o2', 'h2_2-o2', 'h2_3-o2'],
+                updates: { 'o2': '0.6619' }
+            },
+            {
+                phase: 'forward',
+                title: 'Step 9: Compute Total Loss (Mean Squared Error)',
+                formula: 'L = &frac12; &Sigma; (o<sub>i</sub> - y<sub>i</sub>)<sup>2</sup>',
+                substituted: 'L = 0.5 &times; [(0.6491 - 1.0)<sup>2</sup> + (0.6619 - 0.0)<sup>2</sup>]<br>&nbsp;&nbsp;= 0.5 &times; [(-0.3509)<sup>2</sup> + (0.6619)<sup>2</sup>]<br>&nbsp;&nbsp;= 0.5 &times; [0.1232 + 0.4381]',
+                result: 'L = 0.2807',
+                logic: 'We quantify how badly the network performed. We use Mean Squared Error (MSE). The &frac12; is a mathematical convenience that cancels out the exponent (2) when we take the derivative during calculus in the next steps.',
+                activeNodes: ['o1', 'o2'],
+                activeEdges: [],
+                updates: { 'loss': '0.2807' }
+            },
+
+            // --- BACKWARD PASS ---
+            {
+                phase: 'backward',
+                title: 'Step 10: Output Layer Error Signals (&delta;)',
+                formula: '&delta;<sub>o_i</sub> = &part;L/&part;z<sub>i</sub><sup>(3)</sup> = (o<sub>i</sub> - y<sub>i</sub>) &times; &sigma;\'(z<sub>i</sub><sup>(3)</sup>)',
+                substituted: '&delta;<sub>o1</sub> = (0.6491 - 1.0) &times; [0.6491 &times; (1 - 0.6491)]<br>&nbsp;&nbsp;&nbsp;&nbsp;= (-0.3509) &times; 0.2276 = -0.0799<br><br>&delta;<sub>o2</sub> = (0.6619 - 0.0) &times; [0.6619 &times; (1 - 0.6619)]<br>&nbsp;&nbsp;&nbsp;&nbsp;= (0.6619) &times; 0.2238 = 0.1481',
+                result: '&delta;<sub>o1</sub> = -0.0799, &nbsp;&delta;<sub>o2</sub> = 0.1481',
+                logic: '<b>The Chain Rule:</b> To find how much a pre-activation <i>z</i> contributed to the loss, we multiply the derivative of the loss function (ŷ - y) by the derivative of the Sigmoid function: &sigma;\'(z) = o(1 - o). These &delta; values are the pure "Error Signals" that flow backward.',
+                activeNodes: ['o1', 'o2'],
+                activeEdges: [],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 11: Gradients for W3 (Row 1)',
+                formula: '&part;L / &part;W<sub>1</sub><sup>(3)</sup> = &delta;<sub>o1</sub> &times; [h<sub>1</sub><sup>(2)</sup>, h<sub>2</sub><sup>(2)</sup>, h<sub>3</sub><sup>(2)</sup>]',
+                substituted: '&part;L / &part;W<sub>1</sub><sup>(3)</sup> = -0.0799 &times; [0.6240, 0.6227, 0.5959]',
+                result: '&part;L / &part;W<sub>1</sub><sup>(3)</sup> = [-0.0499, -0.0498, -0.0476]',
+                logic: '<b>Gradient Calculation:</b> To find how a specific weight affects the loss, multiply the error signal (&delta;) at the destination neuron by the activation value that came from the source neuron.',
+                activeNodes: ['h2_1', 'h2_2', 'h2_3', 'o1'],
+                activeEdges: ['h2_1-o1', 'h2_2-o1', 'h2_3-o1'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 12: Gradients for W3 (Row 2)',
+                formula: '&part;L / &part;W<sub>2</sub><sup>(3)</sup> = &delta;<sub>o2</sub> &times; [h<sub>1</sub><sup>(2)</sup>, h<sub>2</sub><sup>(2)</sup>, h<sub>3</sub><sup>(2)</sup>]',
+                substituted: '&part;L / &part;W<sub>2</sub><sup>(3)</sup> = 0.1481 &times; [0.6240, 0.6227, 0.5959]',
+                result: '&part;L / &part;W<sub>2</sub><sup>(3)</sup> = [0.0924, 0.0922, 0.0883]',
+                logic: 'Gradients for the second row of the output matrix. Notice these are positive, meaning reducing these weights will decrease the error (since o₂ is currently too high).',
+                activeNodes: ['h2_1', 'h2_2', 'h2_3', 'o2'],
+                activeEdges: ['h2_1-o2', 'h2_2-o2', 'h2_3-o2'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 13: Hidden Layer 2 Neuron 1 Delta',
+                formula: '&delta;<sub>h2_1</sub> = ( &delta;<sub>o1</sub>W<sub>1,1</sub><sup>(3)</sup> + &delta;<sub>o2</sub>W<sub>2,1</sub><sup>(3)</sup> ) &times; &sigma;\'(z<sub>1</sub><sup>(2)</sup>)',
+                substituted: '&delta;<sub>h2_1</sub> = ((-0.0799 &times; 0.6) + (0.1481 &times; 0.2)) &times; (0.6240 &times; 0.3760)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (-0.04794 + 0.02962) &times; 0.2346',
+                result: '&delta;<sub>h2_1</sub> = -0.00430',
+                logic: '<b>Multivariable Chain Rule:</b> Because the output of h⁽²⁾₁ branches forward to BOTH o₁ and o₂, its total error derivative is the <i>sum</i> of the errors propagating back from both paths. We pull back the &delta;s, multiply by the connecting weights, sum them, and multiply by the local Sigmoid derivative.',
+                activeNodes: ['o1', 'o2', 'h2_1'],
+                activeEdges: ['h2_1-o1', 'h2_1-o2'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 14: Hidden Layer 2 Neuron 2 Delta',
+                formula: '&delta;<sub>h2_2</sub> = ( &delta;<sub>o1</sub>W<sub>1,2</sub><sup>(3)</sup> + &delta;<sub>o2</sub>W<sub>2,2</sub><sup>(3)</sup> ) &times; &sigma;\'(z<sub>2</sub><sup>(2)</sup>)',
+                substituted: '&delta;<sub>h2_2</sub> = ((-0.0799 &times; 0.1) + (0.1481 &times; 0.4)) &times; (0.6227 &times; 0.3773)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (-0.00799 + 0.05924) &times; 0.2350',
+                result: '&delta;<sub>h2_2</sub> = 0.01204',
+                logic: 'Same branching sum logic for the second neuron in Hidden Layer 2.',
+                activeNodes: ['o1', 'o2', 'h2_2'],
+                activeEdges: ['h2_2-o1', 'h2_2-o2'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 15: Hidden Layer 2 Neuron 3 Delta',
+                formula: '&delta;<sub>h2_3</sub> = ( &delta;<sub>o1</sub>W<sub>1,3</sub><sup>(3)</sup> + &delta;<sub>o2</sub>W<sub>2,3</sub><sup>(3)</sup> ) &times; &sigma;\'(z<sub>3</sub><sup>(2)</sup>)',
+                substituted: '&delta;<sub>h2_3</sub> = ((-0.0799 &times; 0.3) + (0.1481 &times; 0.5)) &times; (0.5959 &times; 0.4041)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (-0.02397 + 0.07405) &times; 0.2408',
+                result: '&delta;<sub>h2_3</sub> = 0.01206',
+                logic: 'Chain rule across the output layer, arriving at the last neuron of Hidden Layer 2. We now have the "Error Signal" for all nodes in Hidden 2.',
+                activeNodes: ['o1', 'o2', 'h2_3'],
+                activeEdges: ['h2_3-o1', 'h2_3-o2'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 16: Gradients for W2 Matrix',
+                formula: '&part;L / &part;W<sub>i,j</sub><sup>(2)</sup> = &delta;<sub>h2_i</sub> &times; h<sub>j</sub><sup>(1)</sup>',
+                substituted: 'Row 1 (&delta;<sub>h2_1</sub>=-0.00430): [-0.00239, -0.00234, -0.00248]<br>Row 2 (&delta;<sub>h2_2</sub>=+0.01204): [+0.00668, +0.00656, +0.00694]<br>Row 3 (&delta;<sub>h2_3</sub>=+0.01206): [+0.00669, +0.00657, +0.00696]',
+                result: 'W<sup>(2)</sup> Gradients Calculated',
+                logic: 'W<sup>(2)</sup> gradient matrix. Note that these numbers are <i>smaller</i> than the W³ gradients. Because we are now deeper in the network, the chain rule has multiplied together multiple fractions (Sigmoid derivatives).',
+                activeNodes: ['h1_1', 'h1_2', 'h1_3', 'h2_1', 'h2_2', 'h2_3'],
+                activeEdges: ['h1_1-h2_1', 'h1_2-h2_1', 'h1_3-h2_1', 'h1_1-h2_2', 'h1_2-h2_2', 'h1_3-h2_2', 'h1_1-h2_3', 'h1_2-h2_3', 'h1_3-h2_3'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 17: Hidden Layer 1 Deltas (Deep Propagation)',
+                formula: '&delta;<sub>h1_j</sub> = &Sigma;<sub>i=1</sub><sup>3</sup> ( &delta;<sub>h2_i</sub> W<sub>i,j</sub><sup>(2)</sup> ) &times; &sigma;\'(z<sub>j</sub><sup>(1)</sup>)',
+                substituted: '&delta;<sub>h1_1</sub> = [(-0.00430 &times; 0.3) + (0.01204 &times; 0.1) + (0.01206 &times; 0.4)] &times; 0.2469 = 0.001168<br>&delta;<sub>h1_2</sub> = [-0.00086 + 0.00602 + 0.00241] &times; 0.2479 = 0.001877<br>&delta;<sub>h1_3</sub> = [-0.00172 + 0.00361 + 0.00121] &times; 0.2440 = 0.000756',
+                result: '&delta;<sub>h1_1</sub> = 0.001168, &delta;<sub>h1_2</sub> = 0.001877, &delta;<sub>h1_3</sub> = 0.000756',
+                logic: '<b>Deep Chain Rule:</b> Error propagates further backward. The error from a single layer 1 neuron splits across 3 paths into layer 2, which then split into 2 paths into the output. The math elegantly sums all these downstream effects.',
+                activeNodes: ['h2_1', 'h2_2', 'h2_3', 'h1_1', 'h1_2', 'h1_3'],
+                activeEdges: ['h1_1-h2_1', 'h1_1-h2_2', 'h1_1-h2_3', 'h1_2-h2_1', 'h1_2-h2_2', 'h1_2-h2_3', 'h1_3-h2_1', 'h1_3-h2_2', 'h1_3-h2_3'],
+                updates: {}
+            },
+            {
+                phase: 'backward',
+                title: 'Step 18: Gradients for W1 Matrix',
+                formula: '&part;L / &part;W<sub>i,j</sub><sup>(1)</sup> = &delta;<sub>h1_i</sub> &times; x<sub>j</sub>',
+                substituted: 'Row 1 (&delta;<sub>h1_1</sub>=0.001168): [0.000584, 0.000350]<br>Row 2 (&delta;<sub>h1_2</sub>=0.001877): [0.000939, 0.000563]<br>Row 3 (&delta;<sub>h1_3</sub>=0.000756): [0.000378, 0.000227]',
+                result: 'W<sup>(1)</sup> Gradients Calculated',
+                logic: 'W<sup>(1)</sup> gradients are <b>TINY</b>. We have encountered the <i>Vanishing Gradient Problem</i>. Compare this: W³ gradient was ~0.05. W¹ gradient is ~0.0005 (100&times; smaller!). The earlier layers learn incredibly slowly.',
+                activeNodes: ['x1', 'x2', 'h1_1', 'h1_2', 'h1_3'],
+                activeEdges: ['x1-h1_1', 'x2-h1_1', 'x1-h1_2', 'x2-h1_2', 'x1-h1_3', 'x2-h1_3'],
+                updates: {}
+            },
+
+            // --- WEIGHT UPDATE ---
+            {
+                phase: 'update',
+                title: 'Step 19: Update Output Weights (W3)',
+                formula: 'W<sub>new</sub><sup>(3)</sup> = W<sub>old</sub><sup>(3)</sup> - &eta; &times; (&part;L/&part;W<sup>(3)</sup>)',
+                substituted: 'W<sup>(3)</sup><sub>Row1</sub>: [0.6, 0.1, 0.3] - 0.5 &times; [-0.0499, -0.0498, -0.0476]<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= [0.6250, 0.1249, 0.3238]<br>W<sup>(3)</sup><sub>Row2</sub>: [0.2, 0.4, 0.5] - 0.5 &times; [0.0924, 0.0922, 0.0883]<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= [0.1538, 0.3539, 0.4559]',
+                result: 'W<sup>(3)</sup> updated successfully',
+                logic: 'Gradient Descent step: The weights are adjusted in the opposite direction of the gradient to minimize the error. Learning rate (&eta;) scales the step size.',
+                activeNodes: ['h2_1', 'h2_2', 'h2_3', 'o1', 'o2'],
+                activeEdges: ['h2_1-o1', 'h2_2-o1', 'h2_3-o1', 'h2_1-o2', 'h2_2-o2', 'h2_3-o2'],
+                updates: {}
+            },
+            {
+                phase: 'update',
+                title: 'Step 20: Update Hidden 2 Weights (W2)',
+                formula: 'W<sub>new</sub><sup>(2)</sup> = W<sub>old</sub><sup>(2)</sup> - &eta; &times; (&part;L/&part;W<sup>(2)</sup>)',
+                substituted: 'W<sup>(2)</sup><sub>Row1</sub>: [0.3, 0.2, 0.4] &rarr; [0.3012, 0.2012, 0.4012]<br>W<sup>(2)</sup><sub>Row2</sub>: [0.1, 0.5, 0.3] &rarr; [0.0967, 0.4967, 0.2965]<br>W<sup>(2)</sup><sub>Row3</sub>: [0.4, 0.2, 0.1] &rarr; [0.3967, 0.1967, 0.0965]',
+                result: 'W<sup>(2)</sup> updated successfully',
+                logic: 'Smaller updates than W³ due to the deeper chain rule multiplication dampening the signal.',
+                activeNodes: ['h1_1', 'h1_2', 'h1_3', 'h2_1', 'h2_2', 'h2_3'],
+                activeEdges: ['h1_1-h2_1', 'h1_2-h2_1', 'h1_3-h2_1', 'h1_1-h2_2', 'h1_2-h2_2', 'h1_3-h2_2', 'h1_1-h2_3', 'h1_2-h2_3', 'h1_3-h2_3'],
+                updates: {}
+            },
+            {
+                phase: 'update',
+                title: 'Step 21: Update Hidden 1 Weights (W1)',
+                formula: 'W<sub>new</sub><sup>(1)</sup> = W<sub>old</sub><sup>(1)</sup> - &eta; &times; (&part;L/&part;W<sup>(1)</sup>)',
+                substituted: 'W<sup>(1)</sup><sub>Row1</sub>: [0.2, 0.4] &rarr; [0.1997, 0.3998]<br>W<sup>(1)</sup><sub>Row2</sub>: [0.3, 0.1] &rarr; [0.2995, 0.0997]<br>W<sup>(1)</sup><sub>Row3</sub>: [0.5, 0.2] &rarr; [0.4998, 0.1999]',
+                result: 'W<sup>(1)</sup> updated successfully',
+                logic: 'Extremely microscopic updates applied to the input weights. Backpropagation iteration 1 complete!',
+                activeNodes: ['x1', 'x2', 'h1_1', 'h1_2', 'h1_3'],
+                activeEdges: ['x1-h1_1', 'x2-h1_1', 'x1-h1_2', 'x2-h1_2', 'x1-h1_3', 'x2-h1_3'],
+                updates: {},
+                extraHTML: `
+            <div class="highlight-box">
+                <strong>⚠️ THE VANISHING GRADIENT PROBLEM</strong>
+                Because the derivative of the Sigmoid function maxes out at 0.25, chaining multiple layers multiplies fractions. Notice how W¹ gradients (~0.0005) are 100&times; smaller than W³ gradients (~0.05). The error signal "vanished" while traveling backward.<br><br>
+                <i>Modern Solution:</i> This is why modern deep networks use the <b>ReLU</b> activation function (where &sigma;'(z) = 1 for positive numbers), preventing the signal from dying out in deep layers!
+            </div>
+            <table class="summary-table">
+                <tr><th>Weight Layer</th><th>Sample Old W</th><th>Sample Gradient</th><th>Sample New W</th></tr>
+                <tr><td>W<sup>(3)</sup> (Output)</td><td>0.6000</td><td>-0.049900</td><td>0.6250</td></tr>
+                <tr><td>W<sup>(2)</sup> (Hidden 2)</td><td>0.3000</td><td>-0.002390</td><td>0.3012</td></tr>
+                <tr><td>W<sup>(1)</sup> (Hidden 1)</td><td>0.2000</td><td>0.000584</td><td>0.1997</td></tr>
+            </table>
+        `
+            }
+        ];
+
+        // ==========================================
+        // 2. SVG RENDERING LOGIC
+        // ==========================================
+
+        const svgEdges = document.getElementById('edges-layer');
+        const svgNodes = document.getElementById('nodes-layer');
+        const svgLabels = document.getElementById('labels-layer');
+
+        function initSVG() {
+            // 1. Draw Edges and Weights
+            networkData.edges.forEach(edge => {
+                const srcNode = networkData.nodes.find(n => n.id === edge.src);
+                const dstNode = networkData.nodes.find(n => n.id === edge.dst);
+
+                const gEdge = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', srcNode.x);
+                line.setAttribute('y1', srcNode.y);
+                line.setAttribute('x2', dstNode.x);
+                line.setAttribute('y2', dstNode.y);
+                line.setAttribute('id', `edge-${edge.id}`);
+                line.setAttribute('class', 'edge');
+
+                // Midpoint for the weight text
+                const midX = (srcNode.x + dstNode.x) / 2;
+                const midY = (srcNode.y + dstNode.y) / 2;
+
+                const weightText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                weightText.setAttribute('x', midX);
+                weightText.setAttribute('y', midY - 6);
+                weightText.setAttribute('text-anchor', 'middle');
+                weightText.setAttribute('id', `weight-${edge.id}`);
+                weightText.setAttribute('class', 'edge-label');
+                weightText.textContent = edge.w;
+
+                gEdge.appendChild(line);
+                gEdge.appendChild(weightText);
+                svgEdges.appendChild(gEdge);
+            });
+
+            // 2. Draw Nodes
+            networkData.nodes.forEach(node => {
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                // Circle
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', node.x);
+                circle.setAttribute('cy', node.y);
+                circle.setAttribute('r', 35);
+                circle.setAttribute('fill', node.color);
+                circle.setAttribute('id', `node-${node.id}`);
+                circle.setAttribute('class', 'node');
+
+                // Value Text
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x);
+                text.setAttribute('y', node.y + 5);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('id', `text-${node.id}`);
+                text.setAttribute('class', 'node-text');
+                text.textContent = node.val;
+
+                // Label Text
+                const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelText.setAttribute('x', node.x);
+                labelText.setAttribute('y', node.y - 45);
+                labelText.setAttribute('text-anchor', 'middle');
+                labelText.setAttribute('class', 'node-label');
+                labelText.textContent = node.label;
+
+                g.appendChild(circle);
+                g.appendChild(text);
+                g.appendChild(labelText);
+                svgNodes.appendChild(g);
+            });
+
+            // 3. Draw Loss Box
+            const lossG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const lossRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            lossRect.setAttribute('x', 1060);
+            lossRect.setAttribute('y', 50);
+            lossRect.setAttribute('width', 110);
+            lossRect.setAttribute('height', 45);
+            lossRect.setAttribute('rx', 5);
+            lossRect.setAttribute('fill', 'var(--color-loss)');
+            lossRect.setAttribute('id', 'node-loss');
+            lossRect.setAttribute('class', 'node');
+
+            const lossText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            lossText.setAttribute('x', 1115);
+            lossText.setAttribute('y', 78);
+            lossText.setAttribute('text-anchor', 'middle');
+            lossText.setAttribute('id', 'text-loss');
+            lossText.setAttribute('class', 'node-text');
+            lossText.textContent = 'L = ?';
+
+            lossG.appendChild(lossRect);
+            lossG.appendChild(lossText);
+            svgNodes.appendChild(lossG);
+
+            // 4. Draw Layer Labels
+            const layerLabels = [
+                { text: 'Input Layer', x: 150, y: 580 },
+                { text: 'Hidden Layer 1', x: 450, y: 580 },
+                { text: 'Hidden Layer 2', x: 750, y: 580 },
+                { text: 'Output Layer', x: 1050, y: 580 }
+            ];
+
+            layerLabels.forEach(lbl => {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', lbl.x);
+                text.setAttribute('y', lbl.y);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', 'var(--text-muted)');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('font-size', '16px');
+                text.setAttribute('font-family', 'sans-serif');
+                text.textContent = lbl.text;
+                svgLabels.appendChild(text);
+            });
+        }
+
+        // ==========================================
+        // 3. APPLICATION LOGIC
+        // ==========================================
+
+        let currentStepIndex = -1; // -1 means ready state
+        let isPlaying = false;
+        let playInterval;
+
+        // DOM Elements
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnNext = document.getElementById('btn-next');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnReset = document.getElementById('btn-reset');
+        const stepCounter = document.getElementById('step-counter');
+        const phaseLabel = document.getElementById('phase-label');
+        const progressBar = document.getElementById('progress-bar');
+        const card = document.getElementById('step-card');
+
+        function resetNetworkValues() {
+            networkData.nodes.forEach(n => {
+                const el = document.getElementById(`text-${n.id}`);
+                if (el) el.textContent = n.val;
+            });
+            document.getElementById('text-loss').textContent = 'L = ?';
+        }
+
+        function updateNodeValuesUpTo(targetStep) {
+            resetNetworkValues();
+            for (let i = 0; i <= targetStep; i++) {
+                if (stepsData[i].updates) {
+                    for (const [nodeId, val] of Object.entries(stepsData[i].updates)) {
+                        if (nodeId === 'loss') {
+                            document.getElementById('text-loss').textContent = `L = ${val}`;
+                        } else {
+                            document.getElementById(`text-${nodeId}`).textContent = val;
+                        }
+                    }
+                }
+            }
+        }
+
+        function clearActiveStates() {
+            document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+        }
+
+        function applyActiveStates(stepData) {
+            if (stepData.activeNodes) {
+                stepData.activeNodes.forEach(id => {
+                    const el = document.getElementById(`node-${id}`);
+                    if (el) el.classList.add('active');
+                });
+            }
+            if (stepData.activeEdges) {
+                stepData.activeEdges.forEach(id => {
+                    const edgeLine = document.getElementById(`edge-${id}`);
+                    const weightTxt = document.getElementById(`weight-${id}`);
+                    if (edgeLine) edgeLine.classList.add('active');
+                    if (weightTxt) weightTxt.classList.add('active');
+                });
+            }
+        }
+
+        function renderCard(stepData) {
+            card.classList.remove('visible');
+
+            setTimeout(() => {
+                document.getElementById('card-title').innerHTML = stepData.title;
+                document.getElementById('card-formula').innerHTML = stepData.formula;
+                document.getElementById('card-substituted').innerHTML = stepData.substituted;
+                document.getElementById('card-result').innerHTML = stepData.result;
+                document.getElementById('card-logic').innerHTML = stepData.logic;
+
+                let activeNodesTxt = stepData.activeNodes && stepData.activeNodes.length > 0 ? `Active Nodes: ${stepData.activeNodes.join(', ')}` : '';
+                document.getElementById('card-active-nodes').textContent = activeNodesTxt;
+
+                document.getElementById('card-extra').innerHTML = stepData.extraHTML || '';
+
+                card.className = `card ${stepData.phase} visible`;
+            }, 50);
+        }
+
+        function updateUI() {
+            if (currentStepIndex === -1) {
+                stepCounter.textContent = `Step 0 / 21`;
+                phaseLabel.textContent = "Ready";
+                phaseLabel.style.color = "var(--text-main)";
+                progressBar.style.width = "0%";
+                clearActiveStates();
+                resetNetworkValues();
+                card.className = "card visible";
+                document.getElementById('card-title').textContent = "Welcome";
+                document.getElementById('card-formula').innerHTML = "Click 'Start' or 'Next' to begin the animation.";
+                document.getElementById('card-substituted').innerHTML = "";
+                document.getElementById('card-result').innerHTML = "";
+                document.getElementById('card-active-nodes').textContent = "";
+                document.getElementById('card-logic').innerHTML = "This will walk through a 4-layer neural network's forward pass, backpropagation, and weight update using the <b>multi-variable chain rule</b>.";
+                document.getElementById('card-extra').innerHTML = "";
+                return;
+            }
+
+            const stepData = stepsData[currentStepIndex];
+
+            stepCounter.textContent = `Step ${currentStepIndex + 1} / 21`;
+            progressBar.style.width = `${((currentStepIndex + 1) / 21) * 100}%`;
+
+            if (stepData.phase === 'forward') {
+                phaseLabel.textContent = "🔵 Forward Pass";
+                phaseLabel.style.color = "#60a5fa";
+            } else if (stepData.phase === 'backward') {
+                phaseLabel.textContent = "🔴 Backward Pass";
+                phaseLabel.style.color = "#fb923c";
+            } else {
+                phaseLabel.textContent = "🟢 Weight Update";
+                phaseLabel.style.color = "#4ade80";
+            }
+
+            clearActiveStates();
+            updateNodeValuesUpTo(currentStepIndex);
+            applyActiveStates(stepData);
+            renderCard(stepData);
+
+            btnPrev.disabled = currentStepIndex <= 0;
+            btnNext.disabled = currentStepIndex >= stepsData.length - 1;
+        }
+
+        // Controllers
+        function stepNext() {
+            if (currentStepIndex < stepsData.length - 1) {
+                currentStepIndex++;
+                updateUI();
+            } else if (isPlaying) {
+                pauseAnim();
+            }
+        }
+
+        function stepPrev() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                updateUI();
+            }
+        }
+
+        function playAnim() {
+            if (currentStepIndex >= stepsData.length - 1) currentStepIndex = -1;
+            isPlaying = true;
+            btnPlay.style.display = 'none';
+            btnPause.style.display = 'flex';
+            stepNext();
+            playInterval = setInterval(stepNext, 3500); // Slower interval (3.5s) to read complex math
+        }
+
+        function pauseAnim() {
+            isPlaying = false;
+            btnPlay.style.display = 'flex';
+            btnPause.style.display = 'none';
+            clearInterval(playInterval);
+        }
+
+        function resetAnim() {
+            pauseAnim();
+            currentStepIndex = -1;
+            updateUI();
+        }
+
+        // Event Listeners
+        btnPlay.addEventListener('click', playAnim);
+        btnPause.addEventListener('click', pauseAnim);
+        btnNext.addEventListener('click', () => { pauseAnim(); stepNext(); });
+        btnPrev.addEventListener('click', () => { pauseAnim(); stepPrev(); });
+        btnReset.addEventListener('click', resetAnim);
+
+        // Initialize
+        btnPause.style.display = 'none';
+        initSVG();
+        updateUI();
+
+    </script>
+</body>
+
+</html>
