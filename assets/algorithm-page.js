@@ -160,20 +160,32 @@
     return vector.map((value) => value / total);
   }
 
+  function renderDerivationChain(steps) {
+    if (!steps || !steps.length) return '';
+    return `<div class="derivation-chain">${steps.map((s, i) => `
+      <div class="derive-line">
+        <span class="derive-num">${i + 1}</span>
+        <span class="derive-expr">${s.expr}</span>
+        ${s.result !== undefined ? `<span class="derive-result">${s.result}</span>` : ''}
+      </div>
+      ${s.note ? `<div class="derive-annotation">${s.note}</div>` : ''}
+    `).join('')}</div>`;
+  }
+
   function renderFormulaCards(container, cards) {
     container.innerHTML = `
       <div class="math-grid">
-        ${cards
-          .map(
-            (card) => `
-              <article class="formula-card">
-                <h3>${card.title}</h3>
-                <p>${card.description}</p>
-                <code class="formula">${card.formula}</code>
-              </article>
-            `
-          )
-          .join("")}
+        ${cards.map((card) => `
+          <article class="formula-card">
+            <div class="formula-card-body">
+              <h3>${card.title}</h3>
+              <p>${card.description}</p>
+              <code class="formula">${card.formula}</code>
+              ${renderDerivationChain(card.derivation)}
+              ${card.insight ? `<div class="insight-box">${card.insight}</div>` : ''}
+            </div>
+          </article>
+        `).join('')}
       </div>
     `;
   }
@@ -251,10 +263,12 @@
           <article class="detail-card">
             <h3>Intuition</h3>
             <p>${definition.detail.intuition}</p>
+            ${definition.detail.analogy ? `<ul>${definition.detail.analogy.map(a => `<li>${a}</li>`).join('')}</ul>` : ''}
           </article>
           <article class="detail-card">
-            <h3>Math</h3>
+            <h3>Core Mathematics</h3>
             <p>${definition.detail.math}</p>
+            ${definition.detail.keyFormulas ? definition.detail.keyFormulas.map(f => `<code class="formula">${f}</code>`).join('') : ''}
           </article>
           <article class="detail-card">
             <h3>When To Use It</h3>
@@ -769,32 +783,75 @@
         { label: "p(x=query)", value: U.round(predictiveDensity, 4) },
       ]);
 
+      const dataPrecision = U.round(samples.length / obsVariance, 4);
+      const priorPrecision = U.round(1 / priorVariance, 4);
+      const totalPrecision = U.round(dataPrecision + priorPrecision, 4);
+      const sampleSum = U.round(samples.reduce((a, b) => a + b, 0), 3);
+
       renderFormulaCards(mathNode, [
         {
-          title: "Sample mean",
-          description: "The empirical center of the observed sample.",
-          formula: `x̄ = (${samples.map((value) => U.round(value, 2)).join(" + ")}) / ${samples.length} = ${U.round(sampleMean, 3)}`,
+          title: "Sample mean  x̄",
+          description: "The arithmetic average compresses all n observations to one number — the sufficient statistic for a Gaussian.",
+          formula: `x̄ = (1/n) · Σ xᵢ`,
+          derivation: [
+            { expr: `Sum: ${samples.map(v => U.round(v,2)).join(' + ')} = ${sampleSum}`, result: sampleSum },
+            { expr: `x̄ = ${sampleSum} / ${samples.length}`, result: U.round(sampleMean, 4) },
+            { expr: `Sample variance s² = Σ(xᵢ − x̄)² / n`, result: U.round(mleVariance, 4), note: `Each squared deviation: ${samples.map(v => `(${U.round(v,2)}−${U.round(sampleMean,2)})²=${U.round((v-sampleMean)**2,3)}`).slice(0,4).join(', ')}${samples.length>4?', …':''}` },
+          ],
+          insight: `<strong>Why x̄?</strong> Taking the derivative of the Gaussian log-likelihood ln p(D|μ) = −n/2·ln(2πσ²) − Σ(xᵢ−μ)²/(2σ²) with respect to μ and setting it to zero gives μ̂ = x̄ exactly.`,
         },
         {
-          title: focus === "mle" ? "Log-likelihood" : "Gaussian likelihood",
-          description: focus === "mle" ? "MLE maximizes this expression with respect to the parameters." : "The sample likelihood under a Gaussian observation model.",
-          formula:
-            focus === "mle"
-              ? `log p(D|μ=x̄) = ${U.round(logLikelihood, 3)}`
-              : `p(D|μ,σ²) = ∏_i N(x_i | μ, σ²_obs)`,
+          title: focus === "mle" ? "Log-likelihood  ℓ(μ)" : "Gaussian likelihood  p(D|μ)",
+          description: focus === "mle"
+            ? "MLE asks: for which μ is the observed data most probable? Setting ∂ℓ/∂μ = 0 yields μ̂ = x̄."
+            : "Each observation contributes one Gaussian density term; they multiply because samples are independent.",
+          formula: focus === "mle"
+            ? `ℓ(μ) = −(n/2)ln(2πσ²) − Σ(xᵢ−μ)²/(2σ²)`
+            : `p(D|μ,σ²) = ∏ᵢ N(xᵢ | μ, σ²_obs)`,
+          derivation: focus === "mle" ? [
+            { expr: `n = ${samples.length},  σ²_obs = ${U.round(obsVariance,3)}`, result: '' },
+            { expr: `−(n/2)·ln(2πσ²) = −(${samples.length}/2)·ln(${U.round(2*Math.PI*obsVariance,3)})`, result: U.round(-0.5*samples.length*Math.log(2*Math.PI*obsVariance),3) },
+            { expr: `−Σ(xᵢ−x̄)²/(2σ²) = −${U.round(samples.reduce((a,v)=>a+(v-sampleMean)**2,0),3)}/(2·${U.round(obsVariance,3)})`, result: U.round(-samples.reduce((a,v)=>a+(v-sampleMean)**2,0)/(2*obsVariance),3) },
+            { expr: `ℓ(μ̂ = x̄) total`, result: U.round(logLikelihood, 4), note: "This is the maximum value of ℓ; any other μ gives a smaller log-likelihood." },
+          ] : [
+            { expr: `First term: N(${U.round(samples[0],2)} | μ, ${U.round(obsVariance,2)})`, result: U.round(U.gaussianPdf(samples[0], sampleMean, obsVariance), 4) },
+            { expr: `Full product: Π over ${samples.length} terms`, result: `exp(${U.round(logLikelihood,3)})` },
+          ],
+          insight: focus === "mle"
+            ? `<strong>Key insight:</strong> The MLE for the Gaussian mean is unbiased (<em>E[x̄] = μ</em>), but the MLE for variance divides by <em>n</em>, introducing a small downward bias — which is why sample variance divides by <em>n−1</em>.`
+            : `<strong>Independence assumption:</strong> p(D|μ) = Π p(xᵢ|μ) only holds when samples are i.i.d. The log converts the product to a manageable sum.`,
         },
         {
-          title: focus === "map" ? "MAP / posterior mode" : "Posterior update",
-          description: "Prior precision and data precision combine additively.",
-          formula: `μ_post = [(${samples.length}/${U.round(obsVariance, 2)})·${U.round(sampleMean, 3)} + (1/${U.round(priorVariance, 2)})·${U.round(priorMean, 3)}] / [${U.round(samples.length / obsVariance + 1 / priorVariance, 3)}] = ${U.round(posteriorMean, 3)}`,
+          title: focus === "map" ? "MAP posterior mode  μ_MAP" : "Posterior precision update",
+          description: "Bayes' rule combines prior precision and data precision additively — a beautiful conjugacy property of the Gaussian family.",
+          formula: `τ_post = τ_prior + τ_data   where τ = 1/σ²`,
+          derivation: [
+            { expr: `Prior precision:  τ₀ = 1/σ²_prior = 1/${U.round(priorVariance,3)}`, result: priorPrecision },
+            { expr: `Data precision:   τ_n = n/σ²_obs  = ${samples.length}/${U.round(obsVariance,3)}`, result: dataPrecision },
+            { expr: `Total precision:  τ_post = ${priorPrecision} + ${dataPrecision}`, result: totalPrecision },
+            { expr: `σ²_post = 1/τ_post = 1/${totalPrecision}`, result: U.round(1/totalPrecision, 4) },
+            { expr: `μ_post = (τ_n·x̄ + τ₀·μ₀) / τ_post = (${dataPrecision}·${U.round(sampleMean,3)} + ${priorPrecision}·${U.round(priorMean,3)}) / ${totalPrecision}`, result: U.round(posteriorMean, 4), note: "This is a precision-weighted average of the sample mean and prior mean." },
+          ],
+          insight: `<strong>Conjugate prior magic:</strong> When the prior p(μ) = N(μ₀, σ²_prior) and the likelihood is Gaussian, the posterior is also Gaussian. The posterior precision is just the sum of precisions — as clean as addition.`,
         },
         {
-          title: focus === "bayesian" ? "Posterior variance" : "Predictive density",
-          description: focus === "bayesian" ? "Uncertainty shrinks as precision grows." : "Integrate over posterior uncertainty before predicting a new x.",
-          formula:
-            focus === "bayesian"
-              ? `σ²_post = 1 / (${U.round(samples.length / obsVariance + 1 / priorVariance, 3)}) = ${U.round(posteriorVariance, 3)}`
-              : `p(x=${U.round(query, 2)}|D) = N(${U.round(query, 2)} | ${U.round(posteriorMean, 3)}, ${U.round(obsVariance + posteriorVariance, 3)}) = ${U.round(predictiveDensity, 4)}`,
+          title: focus === "bayesian" ? "Posterior uncertainty  σ²_post" : "Predictive density  p(x*|D)",
+          description: focus === "bayesian"
+            ? "The posterior variance tells you how uncertain you remain about μ after seeing n data points."
+            : "Predictive inference integrates over posterior uncertainty, adding σ²_obs and σ²_post sources of variation.",
+          formula: focus === "bayesian"
+            ? `σ²_post = 1 / τ_post = 1 / (τ_prior + n·τ_obs)`
+            : `p(x*|D) = N(x* | μ_post, σ²_post + σ²_obs)`,
+          derivation: focus === "bayesian" ? [
+            { expr: `σ²_post = 1 / ${totalPrecision}`, result: U.round(posteriorVariance, 4) },
+            { expr: `σ_post = √${U.round(posteriorVariance,4)}`, result: U.round(Math.sqrt(posteriorVariance), 4), note: "As n → ∞, σ²_post → 0 and the posterior collapses onto the true μ." },
+          ] : [
+            { expr: `Predictive variance = σ²_post + σ²_obs = ${U.round(posteriorVariance,4)} + ${U.round(obsVariance,3)}`, result: U.round(posteriorVariance+obsVariance, 4) },
+            { expr: `p(x*=${U.round(query,2)} | D) = N(${U.round(query,2)} | ${U.round(posteriorMean,3)}, ${U.round(posteriorVariance+obsVariance,3)})`, result: U.round(predictiveDensity, 5) },
+          ],
+          insight: focus === "bayesian"
+            ? `<strong>Shrinkage:</strong> With n=${samples.length} observations, uncertainty dropped from σ²_prior=${U.round(priorVariance,3)} to σ²_post=${U.round(posteriorVariance,4)} — a ${U.round((1-posteriorVariance/priorVariance)*100,1)}% reduction.`
+            : `<strong>Two sources of randomness:</strong> σ²_post captures parameter uncertainty (goes to 0 as n→∞), while σ²_obs captures irreducible measurement noise (stays constant).`,
         },
       ]);
 
@@ -1234,13 +1291,26 @@
       renderFormulaCards(mathNode, [
         {
           title: "KDE formula",
-          description: "Average one kernel per sample.",
-          formula: `p̂(x) = (1/${samples.length}) Σ_i K((x - x_i)/${bandwidth.toFixed(2)}) / ${bandwidth.toFixed(2)}`,
+          description: "Average one Gaussian kernel per sample.",
+          formula: `\\hat{p}(x) = \\frac{1}{Nh} \\sum_{i=1}^N K\\left(\\frac{x - x_i}{h}\\right)`,
+          derivation: (() => {
+            const lines = [];
+            lines.push({ expr: `h = \\text{Bandwidth}`, result: bandwidth.toFixed(3) });
+            const visibleSamples = samples.slice(0, Math.min(revealed, samples.length));
+            if (visibleSamples.length > 0) {
+              const terms = visibleSamples.map(s => `K\\left(\\frac{x - ${U.round(s, 2)}}{${bandwidth.toFixed(2)}}\\right)`).join(' + ');
+              lines.push({ expr: `\\sum_{i=1}^{${visibleSamples.length}} K_i`, result: terms.length > 25 ? terms.substring(0, 25) + "... " : terms });
+              if (revealed > samples.length) {
+                lines.push({ expr: `\\hat{p}(x)`, result: `\\frac{1}{${samples.length}} \\times [\\text{Sum of } ${samples.length} \\text{ Kernels}]` });
+              }
+            }
+            return lines;
+          })()
         },
         {
           title: "Bandwidth effect",
           description: "Bandwidth controls smoothness.",
-          formula: `h = ${bandwidth.toFixed(2)} → smaller h = sharper estimate, larger h = smoother estimate`,
+          formula: `h = ${bandwidth.toFixed(2)} \\rightarrow \\text{smaller } h \\text{ = sharper estimate, larger } h \\text{ = smoother estimate}`,
         },
       ]);
 
@@ -1382,29 +1452,63 @@
         { label: "Vote", value: `${votes.A} : ${votes.B}` },
         { label: "Prediction", value: prediction },
       ]);
+      const nn1 = sorted[0];
+      const dx1 = U.round(query.x - nn1.x, 3);
+      const dy1 = U.round(query.y - nn1.y, 3);
+      const voteLines = Object.entries(votes).map(([cls, cnt]) => ({
+        expr: `Class ${cls}: ${cnt} vote${cnt !== 1 ? 's' : ''}`,
+        result: `${cnt}/${visibleCount || 1}`,
+      }));
+
       renderFormulaCards(mathNode, [
         {
-          title: "Distance",
-          description: "k-NN relies entirely on the chosen metric.",
-          formula:
-            metric === "euclidean"
-              ? `d(x,q) = √((x₁-q₁)² + (x₂-q₂)²)`
-              : `d(x,q) = |x₁-q₁| + |x₂-q₂|`,
+          title: "Distance formula",
+          description: metric === "euclidean"
+            ? "Euclidean distance is the straight-line separation in feature space — it treats all dimensions equally."
+            : "Manhattan distance sums absolute differences per dimension, like navigating city blocks.",
+          formula: metric === "euclidean"
+            ? `d(x, q) = √((x₁−q₁)² + (x₂−q₂)²)`
+            : `d(x, q) = |x₁−q₁| + |x₂−q₂|`,
+          derivation: (() => {
+            const lines = [
+              { expr: `Nearest: ${nn1.id}  x=(${U.round(nn1.x,2)}, ${U.round(nn1.y,2)})  q=(${U.round(query.x,2)}, ${U.round(query.y,2)})`, result: '' },
+            ];
+            if (metric === "euclidean") {
+              lines.push({ expr: `Δx = ${U.round(nn1.x,2)} − ${U.round(query.x,2)} = ${dx1}`, result: `${dx1}` });
+              lines.push({ expr: `Δy = ${U.round(nn1.y,2)} − ${U.round(query.y,2)} = ${dy1}`, result: `${dy1}` });
+              lines.push({ expr: `d = √(${dx1}² + ${dy1}²) = √(${U.round(dx1*dx1,3)} + ${U.round(dy1*dy1,3)}) = √${U.round(dx1*dx1+dy1*dy1,3)}`, result: U.round(nn1.distance, 4) });
+            } else {
+              lines.push({ expr: `|Δx| + |Δy| = ${Math.abs(dx1)} + ${Math.abs(dy1)}`, result: U.round(nn1.distance, 4) });
+            }
+            sorted.slice(1, k).forEach((pt, i) => {
+              const dx = U.round(query.x - pt.x, 3);
+              const dy = U.round(query.y - pt.y, 3);
+              lines.push(metric === "euclidean"
+                ? { expr: `#${i+2} ${pt.id}: √(${U.round(dx,2)}²+${U.round(dy,2)}²)`, result: U.round(pt.distance, 3) }
+                : { expr: `#${i+2} ${pt.id}: |${dx}|+|${dy}|`, result: U.round(pt.distance, 3) });
+            });
+            return lines;
+          })(),
+          insight: `<strong>Feature scaling matters:</strong> If x spans 0–100 but y spans 0–1, Euclidean distance is dominated by x. Always standardise features before running k-NN.`,
         },
         {
-          title: "Vote rule",
-          description: "Use the first k neighbours after sorting by distance.",
-          formula: `ŷ = mode({y_(1), …, y_(${k})}) = ${prediction}`,
+          title: `Majority vote  (k = ${k})`,
+          description: "After sorting by distance, count how many of the k nearest neighbours belong to each class. The most common class wins.",
+          formula: `ŷ = argmax_c Σᵢ₌₁ᵏ 𝟙[yᵢ = c]`,
+          derivation: visibleCount > 0
+            ? [...voteLines, { expr: `Prediction → ${prediction}`, result: prediction, note: `${votes.A} A-vote${votes.A!==1?'s':''} vs ${votes.B} B-vote${votes.B!==1?'s':''} among the ${visibleCount} revealed neighbours.` }]
+            : [{ expr: 'Reveal neighbours with the step button to see the vote tally', result: '' }],
+          insight: `<strong>Odd k avoids ties:</strong> Choose an odd k for binary classification. Larger k reduces variance but smooths the boundary, smaller k captures finer local structure.`,
         },
       ]);
       const steps = [
-        "<strong>Measure distances.</strong> Compare the query to every labeled example.",
-        "<strong>Sort by closeness.</strong> The nearest examples become the most relevant evidence.",
+        "<strong>Measure distances.</strong> Compute the chosen metric from every training point to the query.",
+        "<strong>Sort by closeness.</strong> Rank all points — the nearest become the strongest evidence.",
         ...sorted.slice(0, k).map(
           (point, index) =>
-            `<strong>Neighbour ${index + 1}.</strong> ${point.id} is class <strong>${point.label}</strong> at distance <strong>${U.round(point.distance, 3)}</strong>.`
+            `<strong>Neighbour ${index + 1}.</strong> ${point.id} (class <strong>${point.label}</strong>) — ${metric === "euclidean" ? "Euclidean" : "Manhattan"} distance = <strong>${U.round(point.distance, 4)}</strong>.`
         ),
-        `<strong>Vote.</strong> Among the first ${k} neighbours the majority class is <strong>${prediction}</strong>.`,
+        `<strong>Vote.</strong> Tally: A=${votes.A}, B=${votes.B} → prediction = <strong>${prediction}</strong>.`,
       ];
       U.renderSteps(stepsNode, steps, revealed);
       table.innerHTML = sorted
@@ -1632,34 +1736,70 @@
         )
         .sort((a, b) => b.score - a.score)
         .slice(0, 6);
+      const topCandidate = nextCandidates[0];
 
       callout.innerHTML = nextCandidates.length
-        ? `Best available split: <strong>${nextCandidates[0].feature} ≤ ${U.round(nextCandidates[0].threshold, 2)}</strong> with gain <strong>${U.round(nextCandidates[0].score, 3)}</strong>.`
+        ? `Best available split: <strong>${nextCandidates[0].feature} ≤ ${U.round(nextCandidates[0].threshold, 2)}</strong> — Gain <strong>${U.round(nextCandidates[0].score, 4)}</strong>.`
         : "No additional split improves the current tree within the selected depth.";
 
       renderFormulaCards(mathNode, [
         {
-          title: state.mode === "classification" ? "Impurity reduction" : "Squared-error reduction",
-          description: "Trees choose the split with the largest objective improvement.",
-          formula:
-            state.mode === "classification"
-              ? "Gain = Gini(parent) - weighted Gini(children)"
-              : "Gain = SSE(parent) - weighted SSE(children)",
+          title: state.mode === "classification" ? "Gini impurity  G(node)" : "Squared-error criterion",
+          description: state.mode === "classification"
+            ? "Gini impurity measures how often a randomly drawn example would be misclassified. A pure node has G=0; a perfectly mixed node has G=0.5."
+            : "Regression trees minimise within-leaf variance by choosing the threshold that most reduces mean-squared error.",
+          formula: state.mode === "classification"
+            ? `G(t) = 1 − Σ_c p²_c   [0 = pure, 0.5 = maximum impurity]`
+            : `SSE(t) = Σᵢ∈t (yᵢ − ȳ_t)²`,
+          derivation: derivLines,
+          insight: state.mode === "classification"
+            ? `<strong>Why Gini not entropy?</strong> Both produce very similar splits in practice. Gini avoids the log() computation, making it faster to evaluate across thousands of candidate thresholds.`
+            : `<strong>Piecewise constant prediction:</strong> Each leaf predicts the mean of its training points. More splits = lower training error, but higher variance — the core overfitting tradeoff.`,
         },
         {
-          title: "Greedy rule",
-          description: "At each node the best available split is chosen locally.",
-          formula: nextCandidates[0]
-            ? `${nextCandidates[0].feature} ≤ ${U.round(nextCandidates[0].threshold, 2)}`
-            : "no valid split",
+          title: "Greedy split selection",
+          description: "At every node the algorithm scores every (feature, threshold) pair and picks the one with the largest impurity reduction. This local greedy choice is not globally optimal but is tractable.",
+          formula: `Gain = G(parent) − [nL/n · G(left) + nR/n · G(right)]`,
+          derivation: topCandidate ? [
+            { expr: `Best: ${topCandidate.feature} ≤ ${U.round(topCandidate.threshold, 2)}  →  Gain = ${U.round(topCandidate.score, 4)}`, result: U.round(topCandidate.score, 4), note: `Evaluated against ${nextCandidates.length} candidate thresholds at this step.` },
+          ] : [{ expr: 'No valid split within the current depth limit', result: '' }],
+          insight: `<strong>Depth controls overfitting:</strong> A single-split stump is a weak learner. Random forests aggregate hundreds of diverse trees to dramatically reduce variance while keeping bias low.`,
         },
       ]);
+      const parentRows = state.leaves.flatMap(l => l.rows);
+      const parentGini = state.mode === "classification" ? gini(parentRows) : mse(parentRows);
+      let derivLines = [];
+      if (topCandidate && state.mode === "classification") {
+        const p1 = parentRows.filter(r => r.label === 1).length;
+        const p0 = parentRows.filter(r => r.label === 0).length;
+        const n = parentRows.length;
+        derivLines = [
+          { expr: `Parent: ${n} rows — class-1: ${p1}, class-0: ${p0}`, result: '' },
+          { expr: `p₁ = ${p1}/${n} = ${U.round(p1/n,3)},  p₀ = ${p0}/${n} = ${U.round(p0/n,3)}`, result: '' },
+          { expr: `Gini(parent) = 1 − p₁² − p₀² = 1 − ${U.round((p1/n)**2,3)} − ${U.round((p0/n)**2,3)}`, result: U.round(parentGini, 4) },
+          { expr: `Best split: ${topCandidate.feature} ≤ ${U.round(topCandidate.threshold,2)}  →  left: ${topCandidate.left.length}, right: ${topCandidate.right.length}`, result: '' },
+          { expr: `Gini(left)=${U.round(gini(topCandidate.left),4)},  Gini(right)=${U.round(gini(topCandidate.right),4)}`, result: '' },
+          { expr: `Weighted = (${topCandidate.left.length}/${n})·${U.round(gini(topCandidate.left),4)} + (${topCandidate.right.length}/${n})·${U.round(gini(topCandidate.right),4)}`, result: U.round((topCandidate.left.length/n)*gini(topCandidate.left)+(topCandidate.right.length/n)*gini(topCandidate.right),4) },
+          { expr: `Gain = ${U.round(parentGini,4)} − ${U.round((topCandidate.left.length/n)*gini(topCandidate.left)+(topCandidate.right.length/n)*gini(topCandidate.right),4)}`, result: U.round(topCandidate.score,4), note: 'The split with the largest gain is chosen at each node — this is the greedy criterion.' },
+        ];
+      } else if (topCandidate && state.mode === "regression") {
+        const n = parentRows.length;
+        const parentMSE = mse(parentRows);
+        derivLines = [
+          { expr: `Parent MSE: mean(y) = ${U.round(U.mean(parentRows.map(r=>r.score)),2)}, SSE = ${U.round(parentMSE,4)}`, result: '' },
+          { expr: `Split: hours ≤ ${U.round(topCandidate.threshold,2)}  →  left: ${topCandidate.left.length} pts, right: ${topCandidate.right.length} pts`, result: '' },
+          { expr: `MSE(left)=${U.round(mse(topCandidate.left),4)},  MSE(right)=${U.round(mse(topCandidate.right),4)}`, result: '' },
+          { expr: `Weighted MSE = (${topCandidate.left.length}/${n})·${U.round(mse(topCandidate.left),4)} + (${topCandidate.right.length}/${n})·${U.round(mse(topCandidate.right),4)}`, result: U.round((topCandidate.left.length/n)*mse(topCandidate.left)+(topCandidate.right.length/n)*mse(topCandidate.right),4) },
+          { expr: `Gain = ${U.round(parentMSE,4)} − weighted MSE`, result: U.round(topCandidate.score,4), note: `Each leaf predicts the mean of its group. With ${topCandidate.left.length} in left group, mean = ${U.round(U.mean(topCandidate.left.map(r=>r.score)),2)}.` },
+        ];
+      }
+
 
       U.renderSteps(
         stepsNode,
         state.history.map(
           (entry, index) =>
-            `<strong>Split ${index + 1}.</strong> Use <span class="mono">${entry.feature} ≤ ${U.round(entry.threshold, 2)}</span> because it improves the objective by <strong>${U.round(entry.score, 3)}</strong>.`
+            `<strong>Split ${index + 1}.</strong> Apply <span class="mono">${entry.feature} ≤ ${U.round(entry.threshold, 2)}</span> — this improved the objective by <strong>${U.round(entry.score, 4)}</strong>.`
         ),
         state.history.length
       );
@@ -1929,36 +2069,67 @@
         { label: "Avg. margin", value: U.round(avgMargin, 3) },
       ]);
 
+      const wStr = `[${state.weights.map(w => U.round(w, 2)).join(', ')}]`;
+      const wNormStr = U.round(norm, 3);
       const formulaMap = {
         lda: [
           {
-            title: "Discriminant",
+            title: "Discriminant score",
             description: "LDA derives a linear score from class statistics.",
             formula: `δ(x) = xᵀΣ⁻¹(μ₁-μ₀) + b`,
-          },
-          {
-            title: "Current means",
-            description: "The separator depends on the class means and shared covariance.",
-            formula: `μ₁ = (${U.round(ldaParams.mu1[0], 2)}, ${U.round(ldaParams.mu1[1], 2)}), μ₀ = (${U.round(ldaParams.mu0[0], 2)}, ${U.round(ldaParams.mu0[1], 2)})`,
+            derivation: [
+              { expr: `μ₁ = (${U.round(ldaParams.mu1[0], 2)}, ${U.round(ldaParams.mu1[1], 2)})`, result: '' },
+              { expr: `μ₀ = (${U.round(ldaParams.mu0[0], 2)}, ${U.round(ldaParams.mu0[1], 2)})`, result: '' },
+              { expr: `w = Σ⁻¹(μ₁-μ₀) = [${U.round(ldaParams.w[0], 2)}, ${U.round(ldaParams.w[1], 2)}]`, result: '' },
+              { expr: `b = ${U.round(ldaParams.b, 2)}`, result: '' },
+            ],
+            insight: "<strong>Generative boundary:</strong> LDA assumes both classes are Gaussian with the same shape (covariance). The boundary is exactly where the two probability densities intersect.",
           },
         ],
         logistic: [
-          { title: "Probability model", description: "Logistic regression maps scores into probabilities.", formula: `p(y=1|x) = σ(wᵀx)` },
-          { title: "Gradient step", description: "Each click follows the log-loss gradient.", formula: `w ← w + η (y - σ(wᵀx)) x` },
+          { 
+            title: "Probability model", 
+            description: "Logistic regression maps linear scores into probabilities using the sigmoid function.", 
+            formula: `p(y=1|x) = σ(wᵀx) = 1 / (1 + e^{-wᵀx})`,
+            derivation: Object.keys(state.weights).length > 0 ? [
+              { expr: `Current w = ${wStr}`, result: '' },
+              { expr: `||w|| = ${wNormStr}`, result: '', note: 'Larger weights produce sharper probability boundaries (closer to a hard step function).' }
+            ] : [],
+            insight: "<strong>Log-odds:</strong> The model asserts that the log-odds of class 1 vs class 0 is a linear function of x. This naturally handles probabilities without outputting invalid values <0 or >1."
+          },
+          { 
+            title: "Gradient step", 
+            description: "Each click updates weights along the cross-entropy gradient. The update scales with (target - predicted).", 
+            formula: `w ← w + η (y − p) x`,
+            derivation: state.history.length > 0 ? [
+              { expr: `Step ${state.step} update applied`, result: '', note: `Check the narrative steps below for details on exactly how the boundary moved.` }
+            ] : [{ expr: 'Click "Train one step" to observe the gradient descent arithmetic.', result: '' }],
+            insight: "<strong>Soft errors:</strong> Unlike the perceptron, logistic regression always updates, even for correctly classified points — because the predicted probability p is never exactly 0 or 1."
+          },
         ],
         perceptron: [
-          { title: "Update rule", description: "Only mistakes cause updates.", formula: `if y(wᵀx) ≤ 0 then w ← w + ηyx` },
-          { title: "Current step", description: "The boundary changes only on mistakes.", formula: `last update after ${state.step} steps` },
+          { 
+            title: "Update rule", 
+            description: "The perceptron only cares about mistakes. If a point is correct, weights don't change.", 
+            formula: `if y(wᵀx) ≤ 0 then w ← w + ηyx`,
+            derivation: state.history.length > 0 ? [
+              { expr: `Current w = ${wStr}`, result: '' },
+            ] : [{ expr: 'Click "Train one step" to begin.', result: '' }],
+            insight: "<strong>Sparse updates:</strong> The perceptron has zero loss for correct predictions. It will converge if the data is linearly separable, but may oscillate forever if it is not."
+          },
         ],
         svm: [
-          { title: "Margin score", description: "Large-margin methods prefer y(wᵀx) ≥ 1.", formula: `margin = y(wᵀx)` },
-          {
-            title: featureMapInput.value === "rbf" ? "Kernel-style lift" : "Hinge-style update",
-            description: featureMapInput.value === "rbf" ? "The radial basis lift makes nonlinear boundaries possible." : "The update acts on margin violations.",
-            formula:
-              featureMapInput.value === "rbf"
-                ? `φ(x) = [1, exp(-γ||x-c₁||²), …, exp(-γ||x-c_m||²)]`
-                : `if y(wᵀx) < 1 then w ← (1-ηλ)w + ηyx`,
+          { 
+            title: "Margin score", 
+            description: "Large-margin methods don't just want correct answers; they want y(wᵀx) ≥ 1.", 
+            formula: `margin = y(wᵀx)`,
+            derivation: [
+              { expr: `Current w = ${wStr}`, result: '' },
+              { expr: `||w|| = ${wNormStr}`, result: '', note: 'The margin width is geometrically 1/||w||. Penalising ||w||² forces a wider margin.' },
+            ],
+            insight: featureMapInput.value === "rbf" 
+              ? "<strong>Kernels:</strong> By measuring distance to fixed centers (the RBF features), a linear boundary in the new space becomes a complex curved boundary in the original 2D space."
+              : "<strong>Support vectors:</strong> Points with margin > 1 have zero loss and don't pull the boundary. The boundary is supported only by the points closest to it."
           },
         ],
       };
@@ -2928,11 +3099,30 @@
         { label: "Method", value: method },
       ]);
       renderFormulaCards(mathNode, [
-        { title: "Assignment", description: "Every point joins the closest representative.", formula: "c_i = argmin_k distance(x_i, r_k)" },
+        {
+          title: "Assignment", 
+          description: "Every point joins the closest representative.", 
+          formula: "c_i = \\argmin_k \\text{distance}(x_i, r_k)",
+          derivation: (() => {
+            if (state.phase === "assign" && state.step > 0) return [{ expr: 'Phase', result: 'Computing assignments...' }];
+            const assignments = state.assignments || [];
+            const counts = {};
+            assignments.forEach(c => { counts[c] = (counts[c] || 0) + 1; });
+            return Object.entries(counts).map(([c, count]) => ({
+              expr: `Cluster ${Number(c)+1} Points`, result: `${count}`
+            }));
+          })()
+        },
         {
           title: method === "kmeans" ? "Centroid update" : "Medoid update",
-          description: method === "kmeans" ? "The representative is the cluster average." : "The representative is the in-cluster point with minimal total distance.",
-          formula: method === "kmeans" ? "r_k = mean({x_i : c_i = k})" : "r_k = argmin_{x_j in cluster k} Σ_i distance(x_i, x_j)",
+          description: method === "kmeans" ? "The representative is the geometric average of assigned points." : "The representative is the in-cluster point with minimal total distance.",
+          formula: method === "kmeans" ? "r_k = \\frac{1}{|C_k|} \\sum_{i \\in C_k} x_i" : "r_k = \\argmin_{x_j \\in C_k} \\sum_{i \\in C_k} d(x_i, x_j)",
+          derivation: (() => {
+            if (state.phase === "update") return [{ expr: 'Phase', result: 'Computing new centers...' }];
+            return state.reps.map((rep, k) => ({
+              expr: `r_{${k+1}}`, result: `(${U.round(rep.x, 2)}, ${U.round(rep.y, 2)})`
+            }));
+          })()
         },
       ]);
       U.renderSteps(stepsNode, state.history, state.history.length);

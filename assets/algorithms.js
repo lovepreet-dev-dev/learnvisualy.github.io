@@ -30,8 +30,8 @@
     },
   ];
 
-  function details(intuition, math, use, caution) {
-    return { intuition, math, use, caution };
+  function details(intuition, math, use, caution, analogy = null, keyFormulas = null) {
+    return { intuition, math, use, caution, analogy, keyFormulas };
   }
 
   function page(definition) {
@@ -113,10 +113,16 @@
       summary:
         "See the end-to-end learning workflow from data definition to validation and deployment.",
       detail: details(
-        "Machine learning is the discipline of choosing a parameterized model and adjusting it so that it performs well on data. The important move is not memorizing a definition, but seeing the loop: define a task, choose an objective, optimize parameters, and evaluate generalization.",
-        "The page shows the common training objective shape: choose parameters θ to minimize empirical risk across a dataset. The exact loss changes by task, but the structure is stable: data, objective, optimization, validation, and deployment.",
-        "Use this page before diving into a specific algorithm. It gives you a frame for asking what the inputs are, what the model assumes, what quantity is optimized, and how success is measured.",
-        "A common failure mode is confusing training success with real-world success. A model can fit the training set and still fail under distribution shift, poor labels, or the wrong evaluation metric."
+        "Machine learning is the discipline of choosing a parameterized model and adjusting it so that it performs well on data. The defining move is not memorizing a fixed procedure, but building a loop: define a task, choose an objective, optimize parameters, and evaluate generalization.",
+        "The canonical problem is empirical risk minimization: finding model parameters θ that minimize the average loss L over a dataset D.",
+        "Use this frame before diving into a specific algorithm. Ask: what are the inputs, what does the model output, what scalar quantity is being optimized, and how is success measured?",
+        "A common failure mode is confusing training performance with real-world success. A model can perfectly fit the training set (zero loss) and still fail dramatically under distribution shift or out-of-sample data.",
+        [
+          "Think of ML as writing software where the 'code' is derived from examples rather than typed line-by-line by a programmer."
+        ],
+        [
+          `θ* = argmin_θ (1/N) Σ_{i=1}^N L(y_i, f_θ(x_i))`
+        ]
       ),
     }),
     page({
@@ -124,14 +130,23 @@
       title: "Different Forms of Learning",
       category: "foundations",
       engine: "concept-forms",
-      subtitle: "Compare supervised, unsupervised, semi-supervised, reinforcement, and generative views.",
-      summary:
-        "Compare supervised, unsupervised, semi-supervised, reinforcement, and generative views.",
+      subtitle: "Compare supervised, unsupervised, semi-supervised, reinforcement, and generative paradigms.",
+      summary: "Compare supervised, unsupervised, semi-supervised, reinforcement, and generative views.",
       detail: details(
-        "Different forms of learning are distinguished by what information is available. Supervised learning has targets, unsupervised learning has only structure in x, semi-supervised learning has a few labels plus many unlabeled inputs, reinforcement learning has delayed rewards, and generative learning models how data arise.",
-        "The mathematical differences appear in the objective. Supervised learning minimizes prediction loss, unsupervised learning optimizes structure criteria such as distortion or likelihood, and generative learning factors the joint distribution into interpretable pieces such as p(y)p(x|y).",
-        "Use this page when deciding what class of method matches a dataset. If labels are absent, forcing a classifier is the wrong starting point; if uncertainty is central, generative or Bayesian methods become more attractive.",
-        "Many beginners treat these as isolated boxes, but practical systems often combine them. Semi-supervised pipelines, self-training, generative pretraining, and reinforcement learning with world models all mix these forms."
+        "Different ML paradigms are defined by the environment's feedback. Supervised has explicit targets; unsupervised has only inputs; reinforcement has delayed rewards; generative focuses on how data arise.",
+        "Mathematical objectives divert sharply here. Supervised minimizes prediction loss; unsupervised optimizes structural criteria (distortion or likelihood); generative factors the joint distribution p(x,y).",
+        "Match the paradigm to your data reality. Don't force supervised classification if you have zero labels. If uncertainty is exactly the focus, generative models are superior.",
+        "Many practitioners treat these as isolated boxes. In reality, modern pipelines combine them—for example, unsupervised pretraining followed by supervised fine-tuning.",
+        [
+          "Supervised: Learning with a teacher giving exact answers.",
+          "Unsupervised: Finding patterns in the dark without a guide.",
+          "Reinforcement: Training a dog with treats for good behaviour over time."
+        ],
+        [
+          `Supervised: min_θ E[L(y, f_θ(x))]`,
+          `Unsupervised: max_θ E[log p_θ(x)]`,
+          `RL: max_π E_{τ~π}[Σ γ^t R_t]`
+        ]
       ),
     }),
     gaussianPage(
@@ -140,10 +155,17 @@
       "generative",
       "Model how observations are produced, then update beliefs about the hidden parameters.",
       details(
-        "Generative learning starts from a story about how data were produced. Instead of directly drawing a decision boundary, it models distributions such as p(x|y) and priors such as p(y), or more generally p(x, z, θ).",
-        "The page emphasizes likelihood and posterior calculations. You can see how the sample contributes a likelihood term and how the prior combines with it through Bayes' rule to produce a posterior over parameters.",
-        "Use generative learning when uncertainty matters, when simulation is useful, when missing data are common, or when you need to reason about hidden causes rather than only outputs.",
-        "The main risk is misspecification. If the assumed data-generation process is badly wrong, the posterior can look mathematically clean while being practically misleading."
+        "Generative learning models the full story of how data comes to exist. Instead of just drawing a boundary between classes, you model the source distribution itself.",
+        "By modeling the joint distribution p(x, y) = p(y)p(x|y), generative models can leverage Bayes' rule to compute p(y|x) for prediction, or sample from p(x) to synthesize new data.",
+        "Use generative learning when uncertainty calibration matters, when you need to handle missing features gracefully, or when simulating realistic new data is a primary requirement.",
+        "Because generative models must solve a harder problem (modeling the exact data density), they often underperform discriminative models on pure accuracy metrics if the generative assumptions are wrong.",
+        [
+          "Instead of just learning the difference between a dog and a cat (discriminative), learn the rules for drawing a dog and drawing a cat (generative)."
+        ],
+        [
+          `p(x, y) = p(y)p(x|y)`,
+          `p(y|x) = [p(x|y)p(y)] / p(x)`
+        ]
       )
     ),
     gaussianPage(
@@ -152,10 +174,17 @@
       "gaussian",
       "Estimate the mean and spread of a Gaussian source from observed data.",
       details(
-        "Gaussian parameter estimation reduces a cloud of real-valued observations to a small set of parameters, usually a mean and a variance. The point is not compression for its own sake, but obtaining a mathematically tractable model for future inference.",
-        "The page shows the exact formulas for the sample mean, the Gaussian likelihood, and the variance estimate. Because the Gaussian is analytically convenient, many updates can be written in closed form and inspected step by step.",
-        "Use this page when you want to understand why the Gaussian appears so often in statistics, filtering, control, anomaly detection, and scientific measurement.",
-        "The method is sensitive to heavy tails and strong outliers. If the data are multimodal or extremely skewed, a single Gaussian estimate can hide the real structure."
+        "Estimating parameters means compressing a large cloud of data points into a few summary numbers—like the centre of mass and the radius of spread—that describe the underlying source.",
+        "For a Gaussian, the sample mean x̄ and unbiased sample variance s² are sufficient statistics. They contain all the information from the dataset needed to estimate the true μ and σ².",
+        "Gaussians reflect the Central Limit Theorem. Use this estimation when working with sums of many small independent effects, such as measurement noise, sensor error, or biological traits.",
+        "Gaussians have notoriously thin tails. A single extreme outlier will heavily pull the sample mean and explode the sample variance. Use robust estimators (like median) if outliers are common.",
+        [
+          "Treating the data like physical weights on a beam: the mean is the exact balance point (center of mass), and variance is the moment of inertia."
+        ],
+        [
+          `μ̂ = x̄ = (1/n) Σ x_i`,
+          `σ̂² = s² = 1/(n-1) Σ (x_i - x̄)²`
+        ]
       )
     ),
     gaussianPage(
@@ -165,9 +194,16 @@
       "Choose parameter values that make the observed data most probable under the model.",
       details(
         "Maximum likelihood estimation asks a direct question: for which parameter values would the observed dataset have been most likely? In many classical models, this produces simple analytic estimators.",
-        "On the page the likelihood is written explicitly as a product over data points, then converted into a more convenient log-likelihood. You can inspect the substitution from your sample into the Gaussian MLE formulas.",
-        "Use MLE when you want a clean, data-driven estimate without injecting prior beliefs. It is the default estimator behind a large amount of classical statistics and many machine learning models.",
-        "MLE can overreact when sample size is small or when parameters are weakly identified. It also provides no direct mechanism for encoding prior knowledge or regularization unless you add it separately."
+        "On the page the likelihood is written explicitly as a product over independent data points, then converted into a more convenient log-likelihood sum. You can inspect the substitution from your sample into the Gaussian MLE formulas.",
+        "Use MLE when you want a clean, data-driven estimate without injecting prior beliefs. It is the default estimator behind a large amount of classical statistics and deep learning (cross-entropy is MLE).",
+        "MLE can overreact when sample size is small or when parameters are weakly identified. It will happily assign zero probability to unseen events, which is catastrophic in language modeling.",
+        [
+          "Adjusting the dials on a machine until the sound it produces perfectly matches the recording you have."
+        ],
+        [
+          `θ_{MLE} = argmax_θ ∏ p(x_i | θ)`,
+          `L(θ) = argmax_θ Σ log p(x_i | θ)`
+        ]
       )
     ),
     gaussianPage(
@@ -177,9 +213,16 @@
       "Combine prior preference and data evidence, then choose the posterior mode.",
       details(
         "Maximum a posteriori estimation modifies pure likelihood with prior information. Instead of only asking what fits the data best, it asks what parameter value is most plausible after seeing both prior belief and evidence.",
-        "The page shows the posterior as proportional to likelihood times prior. In the Gaussian-conjugate setting, the resulting MAP estimate is easy to inspect numerically because the posterior remains Gaussian.",
-        "Use MAP when you want regularization or prior structure without carrying the full posterior through every downstream computation. Many regularized estimators can be interpreted as MAP solutions.",
-        "A MAP estimate is still just one point from the posterior. If uncertainty width matters, a full Bayesian treatment is more informative than focusing only on the posterior mode."
+        "The page shows the posterior as proportional to likelihood times prior. Taking the log shows that MAP is exactly equivalent to MLE plus a regularization penalty (like L2 or L1).",
+        "Use MAP when you need regularization or prior structure to reliably fit a model on small datasets. Most regularized machine learning can be interpreted as MAP estimation.",
+        "A MAP estimate is still just one point from the posterior. It is also not invariant under reparameterization: changing the units of measurement can literally move the MAP peak.",
+        [
+          "Tuning the dials on the machine, but with sturdy rubber bands pulling the dials toward their factory default settings."
+        ],
+        [
+          `θ_{MAP} = argmax_θ p(X|θ)p(θ)`,
+          `log p(θ|X) ∝ Σ log p(x_i|θ) + log p(θ)`
+        ]
       )
     ),
     gaussianPage(
@@ -188,10 +231,17 @@
       "bayesian",
       "Update a full posterior distribution instead of keeping only one best estimate.",
       details(
-        "Bayesian estimation treats parameters as uncertain quantities. Before seeing data you have a prior; after seeing data you have a posterior; predictions integrate over that posterior instead of pretending one point estimate is exact.",
-        "The page makes the posterior precision update explicit, showing how prior precision and data precision add. That is the key reason conjugate Bayesian updates are so transparent in Gaussian models.",
-        "Use Bayesian estimation when uncertainty intervals, prior knowledge, sequential updating, or predictive calibration are central to the task.",
-        "The tradeoff is computational. Simple conjugate cases are elegant, but general Bayesian models require approximation methods such as variational inference or MCMC."
+        "Bayesian estimation treats parameters as uncertain random variables. Before seeing data you have a prior distribution; after seeing data you have a posterior distribution; prediction is done by integrating over all plausible parameters.",
+        "The page makes the posterior precision update explicit, showing how prior precision and data precision add. That is why conjugate Bayesian updates are so transparent in Gaussian models.",
+        "Use full Bayesian estimation when uncertainty intervals, sequential updating, robust decision-making under risk, or predictive calibration are central to the task.",
+        "The tradeoff is heavy computational cost. Simple conjugate cases are elegant, but general Bayesian models require approximation methods such as variational inference or MCMC.",
+        [
+          "Instead of betting all your money on the single most likely horse winning, you spread your bets across all horses proportional to their odds."
+        ],
+        [
+          `p(θ|X) = p(X|θ)p(θ) / ∫p(X|θ')p(θ')dθ'`,
+          `p(x_{new}|X) = ∫ p(x_{new}|θ)p(θ|X)dθ`
+        ]
       )
     ),
     page({
@@ -203,10 +253,18 @@
       summary:
         "See how repeated sampling creates a distribution over estimators, not just one answer.",
       detail: details(
-        "An estimator is random because the dataset is random. Bias measures systematic displacement from the truth, while variance measures sensitivity to which sample happened to arrive.",
-        "The page computes the empirical bias, variance, and mean squared error from repeated simulations. It makes the decomposition concrete: MSE = bias² + variance.",
-        "Use this lens whenever you compare two estimators. A seemingly worse estimator can outperform another if it trades a little bias for a large variance reduction.",
-        "The danger is optimizing only one term. Zero bias is not enough if variance is explosive, and low variance is not enough if the estimator is systematically wrong."
+        "An estimator's output is random because the dataset it trains on is random. Bias measures systematic displacement from the truth, while variance measures its sensitivity to the exact sample that was drawn.",
+        "The page computes empirical bias, variance, and mean squared error from repeated simulations. The decomposition MSE = bias² + variance is a fundamental theorem of statistics.",
+        "Use this lens whenever you choose hyperparameters (like tree depth or regularization). A 'worse' (biased) estimator can easily outperform an unbiased one if it trades a little bias for a massive variance reduction.",
+        "Zero bias is completely useless if variance is explosive. High-degree polynomial regression is unbiased but typically produces wild, unusable predictions on test data.",
+        [
+          "Bias is a bent rifle barrel; all shots clump together but miss the bullseye.",
+          "Variance is a shaky marksman; shots are centered on the bullseye but scattered widely."
+        ],
+        [
+          `E[(θ̂ - θ)^2] = (E[θ̂] - θ)^2 + E[(θ̂ - E[θ̂])^2]`,
+          `MSE = Bias² + Variance`
+        ]
       ),
     }),
     page({
@@ -215,13 +273,19 @@
       category: "foundations",
       engine: "cleanup",
       subtitle: "Preprocessing decisions change the data distribution before the model even begins.",
-      summary:
-        "Preprocessing decisions change the data distribution before the model even begins.",
+      summary: "Preprocessing decisions change the data distribution before the model even begins.",
       detail: details(
-        "Missing features and noisy features are not minor cleaning issues; they directly alter the information content that reaches the learner. Imputation changes estimates, and clipping or denoising changes geometry.",
-        "The page exposes the formulas for mean or median imputation and for z-score based clamping. Every time you apply a rule, the feature summary statistics change and so will downstream parameter estimates.",
-        "Use this page before fitting classifiers or density models on imperfect datasets. It is especially important when the missingness mechanism or sensor corruption is not random.",
-        "Naive preprocessing can inject false certainty. Mean imputation can shrink variance, dropping rows can distort class balance, and aggressive clamping can erase real signal along with noise."
+        "Missing and noisy features are not minor 'cleaning' issues; they directly alter the information geometry that reaches the learner. Imputation hallucinates data, and clipping destroys genuine outliers.",
+        "Applying mean imputation artificially spikes the marginal distribution at the mean, shrinking the apparent variance. Z-score clamping behaves as a non-linear squashing function on the tails.",
+        "Use this page to build skepticism before fitting classifiers on imperfect data. Characterizing the missingness mechanism (MCAR, MAR, MNAR) dictates what imputation is mathematically permissible.",
+        "Naive preprocessing injects false certainty. Mean imputation artificially tightens confidence intervals, dropping rows distorts class balance, and aggressive clamping erases the real signal along with noise.",
+        [
+          "Imputing the mean is like filling in a damaged ancient fresco with beige paint. It stops your eyes from tripping, but the historical information is still gone."
+        ],
+        [
+          `x_{imp} = x if x \\neq ∅, else (1/N)Σx`,
+          `x_{clip} = max(min(x, μ + kσ), μ - kσ)`
+        ]
       ),
     }),
     page({
@@ -230,13 +294,18 @@
       category: "foundations",
       engine: "kde",
       subtitle: "Build a density estimate by summing local kernels instead of assuming one global Gaussian.",
-      summary:
-        "Build a density estimate by summing local kernels instead of assuming one global Gaussian.",
+      summary: "Build a density estimate by summing local kernels instead of assuming one global Gaussian.",
       detail: details(
-        "Nonparametric density estimation avoids committing to a fixed parametric family such as one Gaussian. Instead, it lets the observed data shape the density more flexibly.",
-        "The page writes the kernel density estimate explicitly as an average over kernels centered on sample points. The bandwidth parameter is the key control because it determines the bias-variance tradeoff of the density estimate itself.",
-        "Use KDE for exploratory density modeling, anomaly detection, mode discovery, or understanding how smooth or rough the sample distribution appears.",
-        "Bandwidth choice is the central risk. Too small gives a spiky estimate that memorizes the sample; too large oversmooths and hides real modes."
+        "Nonparametric density estimation (KDE) avoids committing to a fixed, rigid parametric shape. Instead, it lets the observed data dictate the contours, placing a bump of probability mass on every point.",
+        "The KDE formula is literally the average of N kernel functions (like narrow Gaussians) centered on the N training points. The bandwidth hyperparameter controls the spread of each bump.",
+        "Use KDE for exploratory data analysis, discovering multiple modes (peaks), anomaly detection, or when the true distribution is clearly not a simple Gaussian.",
+        "Bandwidth choice is critical: too narrow memorizes the sample (spiky, high variance); too wide hides the real structure (smooth, high bias). It also scales horribly to high dimensions (Curse of Dimensionality).",
+        [
+          "Throwing a handful of sand on a table. KDE doesn't try to draw one giant circle over it; it just sweeps a small smoothing brush over every individual grain."
+        ],
+        [
+          `p̂(x) = (1 / N h) Σ_{i=1}^N K((x - x_i) / h)`
+        ]
       ),
     }),
     page({
@@ -263,10 +332,17 @@
       summary:
         "Predict from local evidence by comparing the query to labeled examples.",
       detail: details(
-        "Nearest neighbour methods store the dataset and defer most computation until query time. The key idea is locality: similar points should have similar labels.",
-        "The page shows the exact distance formula and the majority-vote rule. Because the neighbors are revealed one at a time, you can see how the prediction forms from concrete evidence instead of global parameters.",
-        "Use k-NN as a baseline, when the dataset is modest in size, or when local structure matters more than a single smooth boundary.",
-        "The method is sensitive to feature scaling, irrelevant dimensions, and the metric choice. In high-dimensional spaces the notion of ‘nearest’ can become unstable."
+        "Nearest neighbour methods store the dataset and defer all computation until query time (lazy learning). The key idea is locality: points close together in feature space likely share the same label.",
+        "The distance function (e.g., Euclidean or Manhattan) is the engine. The prediction is literally a majority vote or distance-weighted average of the k nearest known points.",
+        "Use k-NN as a dead-simple baseline, when the dataset is modest, or when you need highly irregular, non-linear decision boundaries that perfectly trace the data.",
+        "K-NN falls apart in high dimensions (the Curse of Dimensionality: every point becomes roughly equidistant). It is also intensely sensitive to feature scaling (always standardize inputs!) and irrelevant features.",
+        [
+          "Asking the 5 closest houses in a new neighborhood who they voted for, and assuming your new neighbor will vote the same way."
+        ],
+        [
+          `d(x, q) = ||x - q||_2 = √(Σ(x_i - q_i)^2)`,
+          `ŷ = argmax_c Σ_{i \in N_k(q)} I(y_i = c)`
+        ]
       ),
     }),
     page({
@@ -279,10 +355,17 @@
       summary:
         "Split the feature space greedily using impurity reduction.",
       detail: details(
-        "Decision trees partition the input space using simple threshold questions. Each split is chosen greedily, making the method easy to interpret and easy to visualize.",
-        "The page computes candidate split scores explicitly, using Gini impurity reduction for classification. Every threshold has a measurable before-and-after effect on class purity.",
-        "Use decision trees when interpretability matters, when nonlinear boundaries are needed, or when mixed feature types make linear models awkward.",
-        "Individual trees can overfit. Small changes in data can also change the top splits, which is why ensembles such as random forests and boosting are so common."
+        "Decision trees recursively partition the input space using extremely simple yes/no questions. Each split is chosen greedily to maximize the immediate separation of classes.",
+        "The algorithm evaluates every possible feature and threshold, calculating the Gini Impurity (or Entropy) of the resulting child nodes. It picks the split that yields the largest impurity reduction.",
+        "Use decision trees when you absolutely need interpretability (e.g., medical diagnoses), or when you have mixed feature types (categorical + continuous) and want to skip scaling.",
+        "A single deeply-grown tree will overfit wildly, memorizing isolated noisy points. Minor changes in the training data can completely change the tree structure, which is why Random Forests dominate in practice.",
+        [
+          "Playing a game of 20 Questions to guess an animal, picking the question that rules out the largest number of wrong answers at every step."
+        ],
+        [
+          `Gini(t) = 1 - Σ_{c=1}^C (p_c)^2`,
+          `Gain = Gini(parent) - [ (N_L/N)Gini(left) + (N_R/N)Gini(right) ]`
+        ]
       ),
     }),
     linearPage(
@@ -291,10 +374,17 @@
       "lda",
       "Derive a linear boundary from class means, shared covariance, and priors.",
       details(
-        "LDA is a generative classifier. It assumes each class is Gaussian with a shared covariance matrix, then derives a discriminant function from those assumptions.",
-        "The page shows the pooled covariance estimate, the discriminant vector Σ⁻¹(μ1 - μ0), and the bias term that includes priors. The resulting separator is linear even though it comes from a probabilistic model.",
-        "Use LDA when the Gaussian-with-shared-covariance assumption is plausible or when you want a fast, interpretable baseline with a statistical derivation.",
-        "If class covariances differ substantially or class shapes are strongly non-Gaussian, LDA can misplace the decision boundary."
+        "LDA is a generative classifier disguised as a linear one. It assumes each class is a Gaussian blob and that all blobs have the exact same shape (shared covariance), just centered in different places.",
+        "Because of the shared covariance assumption, the quadratic terms in the log-odds cancel out, leaving a perfectly flat, linear decision boundary defined by the vector Σ⁻¹(μ₁ - μ₀).",
+        "Use LDA when you have a small dataset, classes are well separated, and the Gaussian assumption isn't wildly violated. It is a highly stable, fast baseline.",
+        "If class shapes differ substantially (one is a tight ball, the other a long cigar), the shared covariance assumption fails and LDA misplaces the boundary. Use QDA instead.",
+        [
+          "Drawing a straight line exactly halfway between the centers of two identically shaped clouds of smoke."
+        ],
+        [
+          `w = Σ^{-1}(μ_1 - μ_0)`,
+          `δ_c(x) = x^T Σ^{-1} μ_c - 0.5 μ_c^T Σ^{-1} μ_c + log(P(y=c))`
+        ]
       )
     ),
     linearPage(
@@ -303,10 +393,17 @@
       "logistic",
       "Fit probabilities directly by minimizing log-loss.",
       details(
-        "Logistic regression is discriminative: it models p(y|x) directly rather than modeling how each class generates x. The sigmoid converts a linear score into a probability.",
-        "The page shows the score z = wᵀx, the probability σ(z), and the gradient step that reduces cross-entropy loss. Each training click updates the weights using the current example.",
-        "Use logistic regression for calibrated probabilities, interpretable coefficients, and strong linear baselines.",
-        "The method still depends on feature representation. If the raw space is not close to linearly separable, you need feature engineering or a nonlinear lift."
+        "Logistic regression is the quintessential discriminative classifier. It doesn't care how the data was generated; it only aims to map inputs directly to the probability of class 1 using a squashing function.",
+        "The model computes a linear score z = wᵀx + b, then passes it through the logistic sigmoid function σ(z) = 1/(1+e⁻ᶻ) to bound the output between 0 and 1. Training minimizes the cross-entropy loss via gradient descent.",
+        "Use logistic regression natively as your first classification baseline. It provides incredibly well-calibrated probabilities, highly interpretable weights (odds ratios), and scales efficiently.",
+        "It can only draw straight lines. If your data is a circle inside a ring (XOR problem), logistic regression will fail completely unless you manually engineer nonlinear features (like x²).",
+        [
+          "Applying a 'squash' filter to a raw tug-of-war score, so a +100 point lead reads as '99.9% sure they'll win' instead of an arbitrary unbounded number."
+        ],
+        [
+          `P(y=1|x) = σ(w^T x) = 1 / (1 + exp(-w^T x))`,
+          `L(w) = -Σ [y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i)]`
+        ]
       )
     ),
     linearPage(
@@ -315,10 +412,17 @@
       "perceptron",
       "Correct mistakes with the simplest online linear update rule.",
       details(
-        "The perceptron is a classic online learning algorithm. It does not optimize a smooth probability model; it simply reacts whenever an example is misclassified.",
-        "The page displays the perceptron update w ← w + ηyx when y(wᵀx) ≤ 0. This makes the logic easy to follow: only mistakes move the boundary.",
-        "Use the perceptron to understand online linear classification and to build intuition for margin-based updates and convergence on separable data.",
-        "Because it ignores confidence once points are correctly classified, it can be unstable on noisy or nonseparable datasets and does not provide calibrated probabilities."
+        "The perceptron is the grandfather of neural networks. It is a strictly error-driven, online algorithm: it looks at one point, gases a prediction, and only adjusts its boundary if it makes a mistake.",
+        "The update rule is beautiful in its simplicity: w ← w + y_i x_i. If the dot product sign contradicts the true label, you literally add or subtract the misclassified vector to pivot the boundary.",
+        "Use the perceptron purely for educational intuition. It proves that a very simple, localized mistake-correction rule can globally separate data (if separable).",
+        "It is fundamentally flawed for modern use: it will never stop twitching if data overlaps (not linearly separable), and it produces no probabilities or margin guarantees.",
+        [
+          "A blindfolded person guessing a boundary by walking until they bump into a wall, then turning slightly to avoid it."
+        ],
+        [
+          `if y_i(w^T x_i) ≤ 0:`,
+          `   w ← w + η y_i x_i`
+        ]
       )
     ),
     linearPage(
@@ -327,10 +431,17 @@
       "svm",
       "Push the boundary away from training points instead of only making them correct.",
       details(
-        "Large-margin methods care about how confidently points are separated, not just whether they are on the correct side. A larger margin often improves generalization.",
-        "The page shows the hinge-style logic: if the margin y(wᵀx) is below 1, the update pushes the separator away from the point; otherwise the model mostly regularizes.",
-        "Use large-margin thinking when you want robust separation and a geometric interpretation of generalization.",
-        "Margin methods can still fail if the representation is poor. The margin is only meaningful in the feature space the algorithm sees."
+        "Large-margin methods care about how confidently points are separated, not just whether they are on the correct side. A larger margin implies better generalization because the boundary has a wider 'safe zone'.",
+        "The hinge loss function mathematically enforces this: if a point is on the correct side but within the margin, it still incurs a penalty. The update rule pushes the boundary until the margin distance is at least 1.",
+        "Use large-margin thinking when you want robust separation that resists minor adversarial nudges or measurement noise in the test data.",
+        "A strict margin can be hypersensitive to outliers. A single mislabeled training point can violently swing the boundary (the 'hard margin' problem), which is why we add slack variables (C parameter).",
+        [
+          "Driving down a road: you don't just want to be barely on the correct side of the center line, you want to drive exactly in the middle of your lane."
+        ],
+        [
+          `L(w) = \\max(0, 1 - y_i(w^T x_i))`,
+          `\\min_w ||w||^2 + C \\Sigma \\xi_i`
+        ]
       )
     ),
     linearPage(
@@ -339,10 +450,17 @@
       "svm",
       "Lift inputs into a richer feature space so a linear separator can solve a nonlinear problem.",
       details(
-        "Kernel methods avoid explicitly building every high-dimensional feature. Instead they rely on similarity computations that behave as if the data had been mapped into a richer space.",
-        "The page uses a radial-basis feature lift to make the idea visible: the model remains linear in transformed features while producing nonlinear boundaries in the original plane.",
-        "Use kernel methods when linear geometry in the raw space is too restrictive but you still want strong theoretical structure and convex training objectives.",
-        "Kernel methods can become expensive on very large datasets because the number of support or reference points can grow with the training set."
+        "Kernel methods are the ultimate nonlinear 'cheat code'. Instead of trying to draw a wildly complex curved boundary in 2D, they mathematically lift the data into a high-dimensional space where a simple, flat plane can separate the classes.",
+        "The 'Kernel Trick' avoids computing the high-dimensional coordinates explicitly. By just computing the similarity (dot product) between points, the optimization finds the boundary in the lifted space for free.",
+        "Use kernels when your data is definitively not linearly separable (e.g., concentric circles, checkerboards) but you still want the mathematical guarantees of a convex optimizer (no local minima).",
+        "Kernels scale poorly. The prediction cost grows with the number of training points (or support vectors). In the deep learning era, learned representations often replace fixed kernels.",
+        [
+          "If you have red and blue balls scattered on a flat sheet, a straight line can't separate them. But if you toss them into the air (add a Z axis), you can slide a flat sheet of cardboard right between them."
+        ],
+        [
+          `K(x, z) = \\phi(x)^T \\phi(z)`,
+          `K_{RBF}(x, z) = \\exp(-\\gamma ||x - z||^2)`
+        ]
       ),
       { featureMap: "rbf" }
     ),
@@ -352,10 +470,17 @@
       "svm",
       "Optimize a large-margin separator and focus the solution on the boundary-critical points.",
       details(
-        "Support vector machines are the canonical large-margin classifier. The solution is determined mainly by examples that sit closest to the boundary, the support vectors.",
-        "The page shows a simple hinge-driven update rule and the effect of a radial basis lift when the raw input is not linearly separable. This exposes both the margin logic and the kernel extension.",
-        "Use SVMs when you want a strong classifier with a clear geometric objective and when the dataset size is moderate enough to support margin-based training.",
-        "SVM performance depends on scaling, regularization, and kernel choice. Without tuning, the margin objective can still give poor decision boundaries."
+        "Support Vector Machines combine the large-margin objective with the kernel trick. The boundary is completely defined by a sparse subset of training points called the 'support vectors'.",
+        "The optimization uniquely relies only on the points that are actively contesting the boundary or violating the margin. Every other deeply correct point gets a weight (alpha) of precisely zero.",
+        "Use SVMs (usually with an RBF kernel) as a heavyweight, highly optimized black-box baseline when you have a small-to-medium dataset (<100k rows) and nonlinear boundaries.",
+        "SVMs are famously sensitive to hyperparameter tuning (C and Gamma). Guessing them randomly often fails; you essentially must do a grid search.",
+        [
+          "Building a fence to separate sheep from wolves. You only need to look at the animals standing right on the border to know where the fence must go; the animals deep inside the flock don't matter."
+        ],
+        [
+          `f(x) = \\Sigma_{i=1}^N \\alpha_i y_i K(x_i, x) + b`,
+          `\\alpha_i = 0 \\text{ for non-support vectors}`
+        ]
       ),
       { featureMap: "rbf" }
     ),
@@ -369,10 +494,17 @@
       summary:
         "Use the same tree idea for both class labels and continuous targets.",
       detail: details(
-        "CART unifies classification and regression trees under one greedy splitting framework. The split criterion changes, but the recursive partitioning logic stays the same.",
-        "The page highlights squared-error reduction for regression leaves, where each leaf predicts a constant mean value. This makes the piecewise-constant structure very explicit.",
-        "Use CART when you want interpretable nonlinear regression or when you want the foundational tree algorithm behind many ensemble methods.",
-        "Like classification trees, regression trees can become unstable and jagged without pruning or ensemble averaging."
+        "CART unifies classification and regression trees. The recursive splitting logic is identical; only the mathematical scored used to pick the split changes. A regression tree simply predicts the average target value of all points in a leaf.",
+        "Instead of Gini impurity, a regression tree minimizes the sum of squared errors (SSE) within each leaf. The split is chosen to minimize the variance of the target variable in the resulting left and right child nodes.",
+        "Use CART for regression when the relationships are highly non-linear, discontinuous, or when you have many irrelevant features. Trees natively ignore useless variables.",
+        "Because CART predicts a constant value per leaf, the prediction surface looks like a jagged staircase, not a smooth curve. It physically cannot extrapolate beyond the min/max values seen in training.",
+        [
+          "Sorting an unsorted pile of test scores into smaller and smaller boxes, where each box gets a sticky note with the average score written on it."
+        ],
+        [
+          `ŷ_t = (1/N_t) \\Sigma_{i \\in t} y_i`,
+          `Gain = SSE(parent) - [SSE(left) + SSE(right)]`
+        ]
       ),
     }),
     page({
@@ -385,10 +517,16 @@
       summary:
         "Factor a joint distribution with a directed acyclic graph and local conditionals.",
       detail: details(
-        "Bayesian networks use directed graphs to encode factorization structure. Each node depends only on its parents, so the joint distribution becomes a product of local conditional probability tables.",
-        "The page shows the factorization and lets you test how observation changes dependence. This links graph structure directly to inference logic rather than treating the graph as decoration.",
-        "Use Bayesian networks when causal or conditional structure matters, when local conditionals are interpretable, or when hidden-variable reasoning is needed.",
-        "The graph does not automatically make inference easy. Some network structures still induce difficult inference or difficult parameter learning."
+        "Bayesian networks use directed arrows to tell a causal or conditional story. They break down a massive joint probability distribution into a simple chain of local cause-and-effect rules.",
+        "The joint distribution is mathematically factored as the product of each variable given only its direct parents: P(A,B,C) = P(A)P(B|A)P(C|B).",
+        "Use them when you understand the causal mechanisms (e.g., Disease -> Symptom -> Test Result) and want to do diagnostics (inferring Disease from Test Result).",
+        "If you draw the arrows wrong (e.g., implying a symptom causes a disease), the network will confidently yield nonsensical inferences.",
+        [
+          "A rumor spreading through an office. Bob hears it from Alice, and Charlie hears it from Bob. Charlie doesn't need to talk to Alice; Bob is his only 'parent' for the information."
+        ],
+        [
+          `P(X_1, \\dots, X_n) = \\prod_{i=1}^n P(X_i | Pa(X_i))`
+        ]
       ),
     }),
     page({
@@ -475,10 +613,16 @@
       "general",
       "Combine hidden state transitions with noisy observations.",
       details(
-        "A hidden Markov model adds a second layer to a Markov chain: the states evolve privately, and each state emits observations probabilistically. This separates latent dynamics from visible evidence.",
-        "The page computes forward beliefs, Viterbi best states, and parameter updates on the same example so you can see the three main tasks: filtering, decoding, and learning.",
-        "Use HMMs when sequential dependence exists but the relevant state is not directly observed, such as weather, phonemes, biological motifs, or user intent.",
-        "HMMs are limited by their discrete state assumptions and conditional independence structure. Richer sequence problems often need more expressive state or emission models."
+        "Hidden Markov Models treat reality like a shadow play. There is a true sequence of events happening privately (hidden states), and all we get to see are the noisy, probabilistic emissions (observations) they cast.",
+        "The model is built on two matrices: a Transition matrix (how states jump from one to another) and an Emission matrix (what a given state typically produces).",
+        "Use HMMs whenever you have time-series that jump between distinct regimes—like recognizing spoken phonemes from audio waves, or predicting market bull/bear phases from prices.",
+        "The 'Markov' assumption means a state has no memory of how it got there. If a process depends heavily on long-term history, an HMM will fail terribly compared to an RNN.",
+        [
+          "Guessing the weather inside a windowless room by observing only whether the person walking in is carrying an umbrella."
+        ],
+        [
+          `P(X, Y) = P(X_1) P(Y_1 | X_1) \\prod_{t=2}^T P(X_t | X_{t-1}) P(Y_t | X_t)`
+        ]
       )
     ),
     hmmPage(
@@ -487,10 +631,16 @@
       "decoding",
       "Use Viterbi recursion to recover the most likely hidden-state path.",
       details(
-        "Decoding is different from filtering. Filtering asks for the current state distribution, while decoding asks for the single most likely global path through hidden states.",
-        "The page exposes the Viterbi recursion with max operations and backpointers. This is the right mathematical object when the goal is one coherent state sequence rather than separate per-time marginals.",
-        "Use decoding when you need a discrete interpretation of the entire sequence, such as part-of-speech tags, regime labels, or gesture states.",
-        "The most likely path is not the same as choosing the most likely state independently at each time. Global consistency matters."
+        "Decoding goes beyond just asking 'what is the most likely state right now?'. It asks for the single most coherent, logical sequence of states from beginning to end across all time.",
+        "The Viterbi algorithm achieves this using dynamic programming. Instead of summing probabilities, it strictly maximizes them at every step and leaves 'breadcrumbs' (backpointers) to trace the winning path backwards.",
+        "Use decoding (Viterbi) when the output must be a globally sensible sequence, such as turning audio into a sentence, or tagging words as Noun-Verb-Adjective.",
+        "Viterbi only returns the absolute best path. It gives zero information about whether the second-best path was almost identical or completely different.",
+        [
+          "Finding the single fastest driving route from New York to LA. You don't care about the 'average' traffic time on any road; you just want to lock in the single ultimate winner."
+        ],
+        [
+          `V_{t,k} = \\max_{x} \\left( P(y_t | k) \\cdot a_{x,k} \\cdot V_{t-1, x} \\right)`
+        ]
       )
     ),
     hmmPage(
@@ -523,10 +673,17 @@
       "kmeans",
       "Update centroids by averaging the points currently assigned to each cluster.",
       details(
-        "K-means is the canonical partition-based clustering method. It seeks compact clusters by minimizing within-cluster squared distance to centroids.",
-        "The page shows the assignment rule and the centroid update μ_k = average of cluster k. Each click alternates those two steps so the objective descent becomes visible.",
-        "Use K-means when clusters are roughly spherical, similar in size, and well represented by arithmetic means.",
-        "K-means is sensitive to initialization, scaling, outliers, and the chosen value of k. It is also a poor match for non-convex cluster shapes."
+        "K-means is the absolute classic in partition clustering. It seeks extremely compact groups by perpetually shifting the 'center of mass' of each cluster to the geometric center of its assigned points.",
+        "The objective (inertia) is the sum of squared distances from points to their assigned centroids. Because both assignment and mean-updating strictly decrease or preserve this distance, it mathematically must converge.",
+        "Use K-means everywhere as a baseline. It is unimaginably fast and scales beautifully to millions of points.",
+        "It aggressively forces clusters into equivalent-sized spheres. If you feed it two intertwined spiral galaxies, or one massive sparse cluster next to a tiny dense one, it will slice them bizarrely in half.",
+        [
+          "Dropping 3 magnets onto a table of iron shavings. The shavings snap to the closest magnet, which pulls the magnet toward the center of its pile, repeating until nothing moves."
+        ],
+        [
+          `\\mu_k = (1 / |C_k|) \\Sigma_{i \\in C_k} x_i`,
+          `J = \\Sigma_k \\Sigma_{i \\in C_k} ||x_i - \\mu_k||^2`
+        ]
       )
     ),
     partitionPage(
@@ -535,10 +692,17 @@
       "kmedoids",
       "Restrict each representative to be an actual data point, improving robustness to outliers.",
       details(
-        "K-medoids shares the assignment-update loop of K-means but chooses medoids from the observed data points instead of unconstrained centroids.",
-        "The page makes the difference explicit by computing the total in-cluster distance for each candidate medoid. That lets you see why the representative can jump only onto existing observations.",
-        "Use K-medoids when outliers are present or when the mean is not a meaningful representative of a cluster.",
-        "The cost is extra computation. Evaluating candidate medoids is more expensive than computing simple averages."
+        "K-medoids is the robust cousin of K-means. It shares the same assignment-update loop, but it restricts the 'centers' to be actual data points (medoids) rather than computed arithmetic means.",
+        "Instead of minimizing squared Euclidean distance to a floating average, it minimizes the sum of absolute distances (or any robust metric) to the chosen medoid points.",
+        "Use K-medoids when your dataset is riddled with extreme outliers that would yank a K-means centroid out into empty space, or when you are using a non-Euclidean distance metric.",
+        "The cost is massive. Scanning every point in a cluster to find the one that minimizes total distance to all others is O(N^2) compared to K-means' O(N).",
+        [
+          "Choosing the capital of a state: K-means picks the exact geometric center (which might be in the middle of a desert), while K-medoids picks the most centrally located actual city."
+        ],
+        [
+          `m_k = \\text{argmin}_{x \\in C_k} \\Sigma_{y \\in C_k} d(x, y)`,
+          `J = \\Sigma_k \\Sigma_{i \\in C_k} d(x_i, m_k)`
+        ]
       )
     ),
     hierarchyPage(
@@ -559,10 +723,16 @@
       "agglomerative",
       "Start with singleton points and repeatedly merge the closest clusters.",
       details(
-        "Agglomerative clustering is the bottom-up form of hierarchical clustering. Every point starts alone, and the algorithm repeatedly merges the nearest pair of clusters.",
-        "The page shows exactly which pair merges at each step and why the chosen linkage produces that merge distance. The dendrogram is built alongside the scatter plot.",
-        "Use agglomerative clustering when you want a transparent merge history and when dataset size is moderate enough for pairwise distance bookkeeping.",
-        "Different linkage definitions can produce very different dendrograms, so interpretation depends heavily on that modeling choice."
+        "Agglomerative clustering is a bottom-up approach. It starts by assuming every single data point is its own microscopic cluster, then repeatedly glues the two closest clusters together until only one giant mass remains.",
+        "The strategy for measuring distance between clusters (not just points) is called 'Linkage'. Single linkage measures the closest pair of points across clusters; Ward's minimizes the variance after merging.",
+        "Use agglomerative clustering when you want a rich, nested hierarchy (a dendrogram) of your data, allowing you to choose the perfect number of clusters simply by drawing a horizontal cut line.",
+        "It is greedy and irreversible. If two clusters are merged early on due to an anomaly, they can never be separated later, permanently distorting the tree.",
+        [
+          "Reverse-engineering a family tree. You start with individual siblings, merge them into parents, then grandparents, all the way up to a common ancestor."
+        ],
+        [
+          `d_{min}(C_i, C_j) = \\min_{x \\in C_i, y \\in C_j} d(x, y)`
+        ]
       )
     ),
     hierarchyPage(
@@ -601,10 +771,17 @@
       summary:
         "Grow clusters from dense neighborhoods and leave sparse points as noise.",
       detail: details(
-        "DBSCAN defines clusters by density connectivity rather than by centroid compactness. Core points seed clusters, border points attach to them, and isolated points remain noise.",
-        "The page shows the ε-neighborhood of the active point, the core-point test |Nε(p)| ≥ minPts, and the cluster expansion order.",
-        "Use DBSCAN for irregularly shaped clusters and when you want noise detection without specifying the number of clusters in advance.",
-        "DBSCAN depends heavily on the radius and minimum-points settings. A single global density threshold can also struggle when the dataset contains clusters of very different densities."
+        "DBSCAN Abandons geometric centers entirely in favor of density. It wanders the space, expanding clusters wherever enough points sit close together, and labels anything stranded in empty space as 'noise'.",
+        "A point is a 'core' point if it has at least minPts neighbors within radius ε. Clusters are formed by connecting core points' neighborhoods via transitive reachability.",
+        "Use DBSCAN when you know your data is riddled with chaotic outliers, or when cluster shapes look like contorted ribbons instead of spheres. It brilliantly discovers 'how many' clusters exist automatically.",
+        "It hates varying density. If one cluster is a dense city center and another is a sparse suburb, no single 'radius' (ε) will work correctly for both.",
+        [
+          "A contagious disease spreading through a crowd. If people are standing close enough (density), they catch it and pass it on. Hermits standing far away remain uninfected (noise)."
+        ],
+        [
+          `N_\\epsilon(p) = \\{q \\in D | d(p, q) \\leq \\epsilon\\}`,
+          `p \\text{ is core if } |N_\\epsilon(p)| \\geq minPts`
+        ]
       ),
     }),
     page({
@@ -616,10 +793,17 @@
       summary:
         "Turn a similarity graph into a Laplacian eigenproblem, then split by the Fiedler vector.",
       detail: details(
-        "Spectral clustering reframes clustering as a graph partition problem. Similarity weights become an adjacency matrix, degrees become a diagonal matrix, and the cut structure emerges from eigenvectors of the Laplacian.",
-        "The page computes similarity weights, the Laplacian L = D - W, and the second-smallest eigenvector that defines the split. This makes the algebra behind graph-based clustering visible.",
-        "Use spectral clustering when cluster shape is not well captured by centroids, especially when the data lie on manifolds or form curved groups.",
-        "Its success depends on constructing a good similarity graph. If the graph is poor, the eigenvectors will faithfully reflect the wrong structure."
+        "Spectral clustering realizes that grouping points by Euclidean distance often fails. Instead, it turns the data into a graph, cuts the weakest links, and clusters the points based on how the graph vibrates (its eigen-spectrum).",
+        "It builds an adjacency matrix, computes the Graph Laplacian (L = D - W), and extracts the eigenvectors of the smallest eigenvalues. K-means is then run on these new eigenvector-coordinates.",
+        "Use spectral clustering when your clusters are highly non-convex (like intertwined rings or spirals) and standard K-means completely fails.",
+        "It is agonizingly slow for large datasets. Calculating the eigenvalues of an N×N matrix takes O(N³) time, making it utterly impractical beyond a few tens of thousands of points.",
+        [
+          "Trying to figure out which beads belong to which necklace in a tangled pile. Instead of looking at their coordinates, you shake the pile. Beads on the same string move together."
+        ],
+        [
+          `L = D - W`,
+          `L v = \\lambda D v`
+        ]
       ),
     }),
   ];
