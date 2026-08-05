@@ -4,10 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Machine Learning Studio</title>
-    <link rel="stylesheet" href="./assets/styles.css" />
-    <script defer src="./assets/common.js"></script>
-    <script defer src="./assets/algorithms.js"></script>
-    <script defer src="./assets/catalog.js"></script>
+    <!-- meta:start -->
+    <meta name="description" content="Interactive machine learning concepts — edit the input data, read the formula with your own numbers substituted into it, and step the algorithm one iteration at a time." />
+    <meta name="author" content="Machine Learning Studio" />
+    <meta name="theme-color" content="#0d7a72" />
+    <link rel="canonical" href="https://learnvisualy.github.io/" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d7a72'/%3E%3Ccircle cx='10' cy='11' r='3' fill='%23fff'/%3E%3Ccircle cx='22' cy='16' r='3' fill='%23fff'/%3E%3Ccircle cx='10' cy='22' r='3' fill='%23fff'/%3E%3Cpath d='M10 11 L22 16 L10 22' stroke='%23fff' stroke-width='1.6' fill='none' opacity='.75'/%3E%3C/svg%3E" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Machine Learning Studio" />
+    <meta property="og:title" content="Machine Learning Studio" />
+    <meta property="og:description" content="Interactive machine learning concepts — edit the input data, read the formula with your own numbers substituted into it, and step the algorithm one iteration at a time." />
+    <meta property="og:url" content="https://learnvisualy.github.io/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Machine Learning Studio" />
+    <meta name="twitter:description" content="Interactive machine learning concepts — edit the input data, read the formula with your own numbers substituted into it, and step the algorithm one iteration at a time." />
+    <!-- meta:end -->
+    <link rel="stylesheet" href="./assets/styles.css?v=20260805131305" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous" />
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script defer src="./assets/common.js?v=20260805131305"></script>
+    <script defer src="./assets/algorithms.js?v=20260805131305"></script>
+    <script defer src="./assets/catalog.js?v=20260805131305"></script>
+      <script defer src="./assets/site-nav.js?v=20260805131305"></script>
   </head>
   <body data-page="home">
     <div class="site-shell">
@@ -17,45 +35,48 @@
           <a href="./index.html">Home</a>
           <a href="./pages/introduction.html">Foundations</a>
           <a href="./pages/classification.html">Classification</a>
-          <a href="./neural.html">Neural</a>
           <a href="./pages/graphical-models.html">Graphical Models</a>
           <a href="./pages/clustering.html">Clustering</a>
+          <a href="./pages/neural.html">Neural Networks</a>
         </nav>
       </header>
 
       <section class="hero">
         <div class="hero-card">
-          <div class="eyebrow">Algorithm Atlas</div>
-          <h1>Open one algorithm at a time, manipulate its inputs, and inspect the math at every step.</h1>
+          <div class="eyebrow">Interactive Algorithm Atlas</div>
+          <h1>Put your own numbers in. Watch the formula, the picture and the answer move together.</h1>
           <p class="lead">
-            The site is now organized as a dedicated page for each algorithm or core concept. Every page includes controls, step-by-step math, logic explanations, and a separate detailed explanation section at the bottom.
+            Every concept gets its own page with three things side by side: a visual you can manipulate, the
+            formula with <em>your</em> current values substituted into it, and a step-by-step trail explaining why
+            each update happens. Edit the data table, drag a point across the chart, or retype a matrix — nothing
+            here is a static illustration.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="./pages/introduction.html">Browse foundations</a>
-            <a class="button secondary" href="./pages/algorithm.html?id=nearest-neighbour">Open k-NN</a>
+            <a class="button primary" href="./pages/introduction.html">Start with foundations</a>
+            <a class="button secondary" href="./pages/algorithm.html?id=backpropagation">Open backpropagation</a>
           </div>
           <div class="chip-row">
-            <span class="chip">One page per algorithm</span>
-            <span class="chip">Math shown with substitutions</span>
-            <span class="chip">Step-by-step logic</span>
-            <span class="chip">Bottom deep-dive explanation</span>
+            <span class="chip">42 concept pages</span>
+            <span class="chip">Editable input data</span>
+            <span class="chip">Formulas rendered with KaTeX</span>
+            <span class="chip">Draggable charts</span>
           </div>
         </div>
 
         <aside class="hero-card hero-side">
-          <h3>What changed</h3>
+          <h3>How to use a page</h3>
           <div class="hero-stat-list">
             <div class="soft-box">
-              <strong>Dedicated routes</strong>
-              <p>Each algorithm has its own URL under the shared algorithm page shell.</p>
+              <strong>1 · Change the inputs</strong>
+              <p>Retype a coordinate, add or delete a row, drag a point on the chart, or edit a matrix cell.</p>
             </div>
             <div class="soft-box">
-              <strong>Interactive math</strong>
-              <p>Formula panels update with the actual numbers from the controls, not generic symbols only.</p>
+              <strong>2 · Read the substituted math</strong>
+              <p>The formula cards show the general rule and then the same rule with your numbers in it.</p>
             </div>
             <div class="soft-box">
-              <strong>Deep explanation</strong>
-              <p>Every algorithm page ends with a longer explanation about intuition, equations, use cases, and failure modes.</p>
+              <strong>3 · Step the algorithm</strong>
+              <p>Advance one iteration at a time and follow the logic trail, or run it to convergence.</p>
             </div>
           </div>
         </aside>
@@ -68,7 +89,7 @@
             <h2>Navigate by topic area</h2>
           </div>
           <p class="section-copy">
-            Use the category pages if you want a structured path through the syllabus, or open a single algorithm directly from the lists below.
+            Follow a category for a structured path through the syllabus, or jump straight to a single concept from the full index below.
           </p>
         </div>
         <div id="home-categories" class="catalog-grid"></div>
@@ -85,7 +106,7 @@
       </section>
 
       <p class="footer-note">
-        Open any algorithm and use the step controls repeatedly. The page math, visuals, and explanation cards update together so the derivation stays connected to the behavior.
+        Every page ends with a deep-dive section on intuition, the core mathematics, when to reach for the method, and how it fails. Open one, change something, and watch what breaks — that is usually where the understanding is.
       </p>
     </div>
   </body>

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Source for the standalone Vite prototype; the engine it contains now
+# lives in /assets/nn-engine.js and is what the site actually runs.
+Disallow: /neural/
+
+Sitemap: https://learnvisualy.github.io/sitemap.xml
