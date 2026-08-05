@@ -385,7 +385,11 @@
           <article class="detail-card">
             <h3>Core Mathematics</h3>
             <p>${definition.detail.math}</p>
-            ${definition.detail.keyFormulas ? definition.detail.keyFormulas.map(f => `<code class="formula">${f}</code>`).join('') : ''}
+            ${definition.detail.keyFormulas
+              ? `<div class="detail-formulas">${definition.detail.keyFormulas
+                  .map((f) => `<div class="formula-tex">${U.tex(f, true)}</div>`)
+                  .join('')}</div>`
+              : ''}
           </article>
           <article class="detail-card">
             <h3>When To Use It</h3>

@@ -1234,6 +1234,18 @@ tr:hover td { background: rgba(26, 122, 110, 0.04); }
   text-align: center;
 }
 
+/* Deep-dive key formulas: same KaTeX block as the lab formula cards,
+   stacked with a little breathing room inside the detail card. */
+.detail-formulas {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.detail-formulas .formula-tex {
+  padding: 12px 14px;
+}
+
 /* ── Concept "why it matters" band ──────────────────────────── */
 .concept-band {
   display: grid;
