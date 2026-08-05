@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node (the neural/ prototype has its own .gitignore covering
+# node_modules and dist; this is a belt-and-braces guard)
+node_modules/
+**/node_modules/
+
+# Local editor / tooling state
+.vscode/
+.idea/
+.claude/
