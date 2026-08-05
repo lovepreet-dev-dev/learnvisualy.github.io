@@ -28,6 +28,13 @@
       description:
         "Partition-based, hierarchical, density-based, and graph-based clustering methods.",
     },
+    {
+      id: "neural",
+      title: "Neural Networks",
+      page: "neural.html",
+      description:
+        "Forward propagation, the chain rule running backwards, activation functions, and the gradient descent loop that ties them together.",
+    },
   ];
 
   function details(intuition, math, use, caution, analogy = null, keyFormulas = null) {
@@ -803,6 +810,97 @@
         [
           `L = D - W`,
           `L v = \\lambda D v`
+        ]
+      ),
+    }),
+    page({
+      id: "geometric-transformations",
+      title: "Geometric Transformations",
+      category: "foundations",
+      engine: "transform",
+      subtitle: "Translate, scale, rotate and shear an image with one 3x3 matrix — and see why real code maps pixels backwards.",
+      summary:
+        "Translate, scale, rotate and shear an image with one 3x3 matrix — and see why real code maps pixels backwards.",
+      detail: details(
+        "Every affine transformation of an image — moving it, stretching it, spinning it, slanting it — is a single matrix multiplication applied to each pixel coordinate. Homogeneous coordinates are the trick that lets translation, which is an addition, be folded into the same matrix as rotation and scaling, which are multiplications.",
+        "A point (x, y) is written as the column [x, y, 1]. The 3x3 matrix has a 2x2 linear block (rotation, scale, shear) in the top-left and a translation column on the right. Composing transformations is matrix multiplication, and undoing one is matrix inversion — which only exists when the determinant is non-zero.",
+        "This is the foundation of image augmentation in computer vision pipelines, of camera calibration, and of every graphics transform stack. Understanding forward versus inverse mapping explains a whole class of rendering artefacts.",
+        "Forward mapping — pushing each source pixel to its destination — leaves holes when the image is enlarged or rotated, because rounded destinations collide and skip. Production code always maps inversely: iterate over destination pixels and pull from the source. A determinant of zero collapses the image to a line and cannot be inverted at all.",
+        [
+          "Think of the matrix as instructions to a photocopier: rotate the page, stretch it, slide it. Forward mapping is spraying ink from the original onto a blank sheet and finding gaps. Inverse mapping is asking each blank spot 'which part of the original am I?' — every spot gets an answer."
+        ],
+        [
+          `\\begin{bmatrix} x' \\\\ y' \\\\ 1 \\end{bmatrix} = \\begin{bmatrix} a & c & t_x \\\\ b & d & t_y \\\\ 0 & 0 & 1 \\end{bmatrix}\\begin{bmatrix} x \\\\ y \\\\ 1 \\end{bmatrix}`,
+          `R(\\theta) = \\begin{bmatrix} \\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta \\end{bmatrix}`,
+          `\\det M = ad - bc \\neq 0 \\iff M^{-1} \\text{ exists}`
+        ]
+      ),
+    }),
+    page({
+      id: "activation-functions",
+      title: "Activation Functions",
+      category: "neural",
+      engine: "activation",
+      subtitle: "Without a non-linearity, a deep network collapses into a single linear layer. Compare the choices and their gradients.",
+      summary:
+        "Without a non-linearity, a deep network collapses into a single linear layer. Compare the choices and their gradients.",
+      detail: details(
+        "Stacking linear layers achieves nothing: a matrix times a matrix is just another matrix. The activation function is the only reason depth buys you anything. Its shape decides what the network can represent, and its derivative decides whether gradients survive the trip back through many layers.",
+        "Sigmoid squashes to (0, 1) with derivative s(1 - s), which peaks at just 0.25 — multiply a handful of those together during backpropagation and the gradient vanishes. Tanh is zero-centred with a peak derivative of 1, which helps. ReLU is max(0, z) with a derivative that is exactly 1 for positive inputs, so gradients pass through undiminished, at the cost of dead units for negative inputs.",
+        "ReLU and its variants are the default for hidden layers in deep networks. Sigmoid survives at the output layer for binary probabilities, and softmax for multi-class. Tanh still appears inside recurrent architectures.",
+        "Saturation is the enemy. Sigmoid and tanh both flatten at their extremes, and a flat function has a near-zero derivative — the layer stops learning. ReLU avoids this on the positive side but can die permanently if a unit's weights push every input negative; leaky ReLU exists to patch exactly that.",
+        [
+          "A neuron's activation is a dimmer switch, not a light switch. Sigmoid is a very gentle dimmer that barely responds near either end. ReLU is a switch that is off below zero and perfectly proportional above it."
+        ],
+        [
+          `\\sigma(z) = \\frac{1}{1 + e^{-z}}, \\quad \\sigma'(z) = \\sigma(z)(1 - \\sigma(z))`,
+          `\\tanh(z) = \\frac{e^{z} - e^{-z}}{e^{z} + e^{-z}}, \\quad \\tanh'(z) = 1 - \\tanh^2(z)`,
+          `\\mathrm{ReLU}(z) = \\max(0, z), \\quad \\mathrm{ReLU}'(z) = \\mathbb{1}[z > 0]`
+        ]
+      ),
+    }),
+    page({
+      id: "gradient-descent",
+      title: "Gradient Descent",
+      category: "neural",
+      engine: "gradient-descent",
+      subtitle: "Follow the slope downhill. Watch the learning rate decide between crawling, converging, and diverging.",
+      summary:
+        "Follow the slope downhill. Watch the learning rate decide between crawling, converging, and diverging.",
+      detail: details(
+        "Gradient descent is the entire optimisation story of deep learning in one line: compute which direction increases the loss, then step the other way. Everything else — momentum, Adam, schedules — is a refinement of how big that step should be and how much of the previous step to remember.",
+        "The gradient points in the direction of steepest ascent, so the update subtracts it. The learning rate scales the step. Momentum accumulates an exponentially weighted average of past gradients, which damps oscillation across a narrow valley and accelerates progress along its floor.",
+        "Every parameter in every neural network is trained this way. The same loop fits logistic regression, SVMs with hinge loss, and matrix factorisations.",
+        "The learning rate is the single most consequential hyperparameter. Too small and training crawls; too large and each step overshoots the minimum, the loss climbs, and the run diverges to infinity. Non-convex surfaces add local minima, saddle points, and plateaus where the gradient is near zero in every direction.",
+        [
+          "Walking downhill in thick fog. You can only feel the slope under your feet, so you take a step in the steepest downhill direction and repeat. Big steps get you down fast but may launch you up the opposite slope; tiny steps are safe but you may never arrive."
+        ],
+        [
+          `\\theta_{t+1} = \\theta_t - \\eta \\nabla_\\theta L(\\theta_t)`,
+          `v_{t+1} = \\beta v_t + \\nabla_\\theta L(\\theta_t), \\quad \\theta_{t+1} = \\theta_t - \\eta v_{t+1}`
+        ]
+      ),
+    }),
+    page({
+      id: "backpropagation",
+      title: "Backpropagation",
+      category: "neural",
+      engine: "backprop",
+      subtitle: "The chain rule run backwards through a network — every gradient computed from your own inputs, weights and targets.",
+      summary:
+        "The chain rule run backwards through a network — every gradient computed from your own inputs, weights and targets.",
+      detail: details(
+        "Backpropagation answers one question: if I nudge this weight, how much does the loss change? Computing that naively for every weight would mean a separate forward pass each time. Backpropagation gets all of them in a single backward sweep by reusing shared sub-expressions — it is dynamic programming applied to the chain rule.",
+        "The forward pass stores each layer's pre-activation z and activation a. The backward pass computes an error signal delta at the output, then repeatedly pulls it back through the transpose of the weight matrix and multiplies by the local activation derivative. The gradient for any weight is then simply the delta at its destination times the activation at its source.",
+        "This is how every deep network is trained. Autograd frameworks automate it, but the vanishing-gradient behaviour you can watch on this page is exactly why architectures use ReLU, residual connections and normalisation layers.",
+        "Because each layer multiplies the error signal by an activation derivative, deep networks compound those factors. With sigmoid activations, whose derivative never exceeds 0.25, the gradient shrinks by at least a factor of four per layer — the early layers barely learn. Step through this page and compare the gradient magnitudes in the last layer against the first.",
+        [
+          "A relay team running backwards. The anchor runner knows exactly how far off the finish line was; each earlier runner is told how much of that error was their share, scaled by how strongly they influenced the next runner."
+        ],
+        [
+          `\\delta^{(L)} = (\\mathbf{a}^{(L)} - \\mathbf{y}) \\odot \\sigma'(\\mathbf{z}^{(L)})`,
+          `\\delta^{(l)} = \\left( (W^{(l+1)})^{\\top} \\delta^{(l+1)} \\right) \\odot \\sigma'(\\mathbf{z}^{(l)})`,
+          `\\frac{\\partial L}{\\partial W^{(l)}_{jk}} = \\delta^{(l)}_j \\, a^{(l-1)}_k`
         ]
       ),
     }),

@@ -21,7 +21,7 @@
   function renderCategoryCard(category) {
     const entries = catalog.byCategory(category.id);
     return `
-      <article class="category-banner">
+      <a class="category-banner card-link" href="${categoryHref(category.page)}">
         <div class="meta">
           <span>${entries.length} pages</span>
           <span>${category.title}</span>
@@ -31,22 +31,19 @@
         <div class="pill-list">
           ${entries.slice(0, 5).map((entry) => `<span>${entry.title}</span>`).join("")}
         </div>
-        <p style="margin-top:16px"><a class="button ghost" href="${categoryHref(category.page)}">Open ${category.title}</a></p>
-      </article>
+      </a>
     `;
   }
 
   function renderAlgorithmCard(entry) {
     return `
-      <article class="algorithm-card">
+      <a class="algorithm-card card-link" href="${algorithmHref(entry.id)}">
         <div class="meta">
           <span>${catalog.categories.find((category) => category.id === entry.category).title}</span>
-          <span>${entry.engine}</span>
         </div>
         <h3>${entry.title}</h3>
         <p>${entry.summary}</p>
-        <p style="margin-top:16px"><a class="button ghost" href="${algorithmHref(entry.id)}">Open page</a></p>
-      </article>
+      </a>
     `;
   }
 
