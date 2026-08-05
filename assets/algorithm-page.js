@@ -459,6 +459,13 @@
         ${content}
       </section>
     `;
+
+    /* Callouts carry the running result on labs that have no metric
+       tiles, so they need announcing when they change. Marked here once
+       rather than in every lab's markup. */
+    U.qsa(".callout", rootNode).forEach((node) => {
+      node.setAttribute("aria-live", "polite");
+    });
   }
 
   /* ── Overview of machine learning ─────────────────────────────
@@ -1962,6 +1969,7 @@
             <div class="plot-card">
               <svg id="kde-plot" viewBox="0 0 560 280" aria-label="Kernel density estimation plot"></svg>
             </div>
+            <div class="readout"><div class="output-grid" id="kde-output"></div></div>
             <div class="equation-card" id="kde-math"></div>
             <div class="steps"><ol id="kde-steps"></ol></div>
           </div>
@@ -1977,6 +1985,7 @@
     const plot = rootNode.querySelector("#kde-plot");
     const mathNode = rootNode.querySelector("#kde-math");
     const stepsNode = rootNode.querySelector("#kde-steps");
+    const output = rootNode.querySelector("#kde-output");
     let revealed = 0;
 
     function render() {
@@ -2001,6 +2010,24 @@
       }));
       const yMax = Math.max(...total.map((point) => point.y), ...kernels.flat().map((point) => point.y)) * 1.25;
 
+      /* Summary of the estimate itself, so the effect of the bandwidth
+         is legible as numbers and not only as a shape. */
+      const peak = total.reduce((best, point) => (point.y > best.y ? point : best), total[0]);
+      const peakDensity = peak.y;
+      const step = xs[1] - xs[0];
+      const area = total.reduce((acc, point) => acc + point.y * step, 0);
+      const modes = total.filter(
+        (point, index) =>
+          index > 0 && index < total.length - 1 && point.y > total[index - 1].y && point.y > total[index + 1].y
+      ).length;
+
+      U.renderMetrics(output, [
+        { label: "Samples", value: String(samples.length) },
+        { label: "Bandwidth h", value: bandwidth.toFixed(2) },
+        { label: "Peak at x", value: U.round(peak.x, 2) },
+        { label: "Modes", value: String(modes) },
+      ]);
+
       renderFormulaCards(mathNode, [
         {
           title: "KDE formula",
@@ -2008,13 +2035,26 @@
           tex: "\\hat{p}(x) = \\frac{1}{Nh} \\sum_{i=1}^{N} K\\!\\left(\\frac{x - x_i}{h}\\right)",
           derivation: (() => {
             const lines = [];
-            lines.push({ expr: `h = \\text{Bandwidth}`, result: bandwidth.toFixed(3) });
+            lines.push({
+              tex: `N = ${samples.length}, \\qquad h = ${bandwidth.toFixed(2)}`,
+              result: bandwidth.toFixed(2),
+            });
             const visibleSamples = samples.slice(0, Math.min(revealed, samples.length));
             if (visibleSamples.length > 0) {
-              const terms = visibleSamples.map(s => `K\\left(\\frac{x - ${U.round(s, 2)}}{${bandwidth.toFixed(2)}}\\right)`).join(' + ');
-              lines.push({ expr: `\\sum_{i=1}^{${visibleSamples.length}} K_i`, result: terms.length > 25 ? terms.substring(0, 25) + "... " : terms });
+              lines.push({
+                tex: visibleSamples
+                  .slice(0, 3)
+                  .map((value) => `K\\!\\left(\\frac{x - ${U.round(value, 2)}}{${bandwidth.toFixed(2)}}\\right)`)
+                  .join(" + ") + (visibleSamples.length > 3 ? " + \\cdots" : ""),
+                result: `${visibleSamples.length} of ${samples.length}`,
+                note: "One kernel per sample, each centred on its own observation.",
+              });
               if (revealed > samples.length) {
-                lines.push({ expr: `\\hat{p}(x)`, result: `\\frac{1}{${samples.length}} \\times [\\text{Sum of } ${samples.length} \\text{ Kernels}]` });
+                lines.push({
+                  tex: `\\hat{p}(x) = \\frac{1}{${samples.length}}\\sum_{i=1}^{${samples.length}} K_i(x)`,
+                  result: U.round(peakDensity, 4),
+                  note: "Averaging keeps the total area at 1, so the result is a genuine density.",
+                });
               }
             }
             return lines;
@@ -2022,8 +2062,23 @@
         },
         {
           title: "Bandwidth effect",
-          description: "Bandwidth controls smoothness.",
+          description:
+            "The bandwidth is the only real choice here, and it matters more than the shape of the kernel. Too small and the estimate is a spiky copy of the sample; too large and genuine structure is smoothed away.",
           tex: `K(u) = \\frac{1}{\\sqrt{2\\pi}}e^{-u^2/2}, \\qquad h = ${bandwidth.toFixed(2)}`,
+          derivation: [
+            {
+              tex: `\\int \\hat{p}(x)\\,dx \\approx ${U.texNum(area, 3)}`,
+              result: U.round(area, 3),
+              note: "Numerically integrating the estimate returns 1, confirming it is a probability density.",
+            },
+            {
+              tex: `\\text{modes detected} = ${modes}`,
+              result: String(modes),
+              note: "Slide the bandwidth down and spurious modes appear, one per sample in the limit; slide it up and they merge into a single bump.",
+            },
+          ],
+          insight:
+            "<strong>There is a rule of thumb, not an answer.</strong> Silverman's rule gives h ≈ 1.06 σ n^(-1/5) for roughly Gaussian data, but bandwidth selection is genuinely a modelling decision — which is the price of not assuming a parametric form.",
         },
       ]);
 
