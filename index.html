@@ -33,13 +33,14 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="./assets/styles.css?v=20260805191439" />
+    <link rel="stylesheet" href="./assets/styles.css?v=20260805193102" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-    <script defer src="./assets/common.js?v=20260805191439"></script>
-    <script defer src="./assets/algorithms.js?v=20260805191439"></script>
-    <script defer src="./assets/catalog.js?v=20260805191439"></script>
-      <script defer src="./assets/site-nav.js?v=20260805191439"></script>
+    <script defer src="./assets/common.js?v=20260805193102"></script>
+    <script defer src="./assets/algorithms.js?v=20260805193102"></script>
+    <script defer src="./assets/catalog.js?v=20260805193102"></script>
+      <script defer src="./assets/home-hero.js?v=20260805193102"></script>
+    <script defer src="./assets/site-nav.js?v=20260805193102"></script>
   </head>
   <body data-page="home">
     <div class="site-shell">
@@ -55,45 +56,49 @@
         </nav>
       </header>
 
-      <section class="hero">
-        <div class="hero-card">
+      <section class="hero-live">
+        <div class="hero-copy">
           <div class="eyebrow">Interactive Algorithm Atlas</div>
-          <h1>Put your own numbers in. Watch the formula, the picture and the answer move together.</h1>
+          <h1>Machine learning you can <em>poke</em>.</h1>
           <p class="lead">
-            Every concept gets its own page with three things side by side: a visual you can manipulate, the
-            formula with <em>your</em> current values substituted into it, and a step-by-step trail explaining why
-            each update happens. Edit the data table, drag a point across the chart, or retype a matrix — nothing
-            here is a static illustration.
+            The same 21 points, solved four different ways. Click anywhere on it to add a point of your own and
+            watch every method disagree about what you just did.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="./pages/introduction.html">Start with foundations</a>
-            <a class="button secondary" href="./pages/algorithm.html?id=backpropagation">Open backpropagation</a>
+            <a class="button primary" href="./pages/introduction.html">Start from the beginning</a>
+            <a class="button secondary" id="hero-demo-link" href="./pages/algorithm.html?id=k-means">
+              Open this concept
+            </a>
           </div>
-          <div class="chip-row">
-            <span class="chip">42 concept pages</span>
-            <span class="chip">Editable input data</span>
-            <span class="chip">Formulas rendered with KaTeX</span>
-            <span class="chip">Draggable charts</span>
-          </div>
+          <p class="hero-scale">
+            <strong>42</strong> concepts · <strong>every</strong> number editable · <strong>zero</strong> static diagrams
+          </p>
         </div>
 
-        <aside class="hero-card hero-side">
-          <h3>How to use a page</h3>
-          <div class="hero-stat-list">
-            <div class="soft-box">
-              <strong>1 · Change the inputs</strong>
-              <p>Retype a coordinate, add or delete a row, drag a point on the chart, or edit a matrix cell.</p>
-            </div>
-            <div class="soft-box">
-              <strong>2 · Read the substituted math</strong>
-              <p>The formula cards show the general rule and then the same rule with your numbers in it.</p>
-            </div>
-            <div class="soft-box">
-              <strong>3 · Step the algorithm</strong>
-              <p>Advance one iteration at a time and follow the logic trail, or run it to convergence.</p>
-            </div>
+        <figure class="hero-stage" id="hero-stage">
+          <div class="hero-stage-inner">
+            <svg viewBox="0 0 520 400" role="img" tabindex="0"
+                 aria-label="A live demonstration cycling through k-means, the perceptron, k-nearest neighbours and DBSCAN on the same points. Click to add a point; press Enter to change method."></svg>
+            <span class="hero-hint">Click anywhere to add a point</span>
+            <span class="hero-stat" id="hero-demo-stat"></span>
           </div>
-        </aside>
+          <figcaption>
+            <div class="hero-caption-head">
+              <span class="hero-running">Now running</span>
+              <strong id="hero-demo-title">k-means clustering</strong>
+              <button type="button" class="mini-button" id="hero-reset">Reset points</button>
+            </div>
+            <p id="hero-demo-note">
+              Every point joins its nearest centre; every centre moves to the average of its points.
+            </p>
+            <div class="hero-chips" id="hero-demo-chips" role="group" aria-label="Choose a method">
+              <button type="button" class="hero-chip is-active" data-index="0" aria-pressed="true">k-means</button>
+              <button type="button" class="hero-chip" data-index="1" aria-pressed="false">Perceptron</button>
+              <button type="button" class="hero-chip" data-index="2" aria-pressed="false">k-NN</button>
+              <button type="button" class="hero-chip" data-index="3" aria-pressed="false">DBSCAN</button>
+            </div>
+          </figcaption>
+        </figure>
       </section>
 
       <section class="section">

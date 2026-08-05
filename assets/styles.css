@@ -2130,3 +2130,185 @@ textarea:focus-visible,
 
 :root[data-theme="dark"] { color-scheme: dark; }
 :root[data-theme="light"] { color-scheme: light; }
+
+/* ══════════════════════════════════════════════════════════════
+   LIVE HERO
+   The landing page opens inside a running demonstration rather than
+   on a grid of links.
+   ══════════════════════════════════════════════════════════════ */
+
+.hero-live {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.95fr);
+  gap: 34px;
+  align-items: center;
+  padding: 30px 0 20px;
+}
+
+.hero-copy h1 {
+  font-size: clamp(2.1rem, 4vw, 3.2rem);
+  line-height: 1.06;
+  margin-top: 10px;
+}
+
+.hero-copy h1 em {
+  font-style: normal;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-copy .lead { font-size: 1.05rem; max-width: 46ch; }
+
+.hero-scale {
+  margin: 20px 0 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.hero-scale strong { color: var(--accent-deep); font-weight: 700; }
+
+/* ── Stage ──────────────────────────────────────────────────── */
+.hero-stage {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.hero-stage-inner {
+  position: relative;
+  background: var(--c-plot-bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.hero-stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+
+.hero-stage svg:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.hero-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  font-size: 0.76rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 11px;
+  pointer-events: none;
+  opacity: 0.92;
+  animation: hintPulse 2.6s ease-in-out infinite;
+}
+
+/* Once someone has clicked, the instruction has done its job. */
+.hero-stage.has-touched .hero-hint { display: none; }
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.hero-stat {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 4px 11px;
+  pointer-events: none;
+}
+
+.hero-stage figcaption { padding: 15px 18px 16px; }
+
+.hero-caption-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+
+.hero-running {
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-running::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: runningPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes runningPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.7); }
+}
+
+.hero-caption-head strong {
+  font-family: var(--heading);
+  font-size: 1.02rem;
+  color: var(--ink);
+  flex: 1;
+}
+
+.hero-stage figcaption p {
+  margin: 0 0 12px;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--muted);
+  min-height: 2.7em;
+}
+
+.hero-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.hero-chip {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunk);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 0.79rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.hero-chip:hover { color: var(--ink); border-color: var(--accent); }
+
+.hero-chip.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+:root[data-theme="dark"] .hero-chip.is-active { color: #06231f; }
+
+@media (max-width: 980px) {
+  .hero-live { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 18px; }
+  .hero-copy .lead { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-hint, .hero-running::before { animation: none; }
+}
