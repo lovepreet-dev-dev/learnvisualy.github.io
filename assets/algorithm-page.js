@@ -1,6 +1,8 @@
 (function () {
   const catalog = window.MLAlgorithms;
   const U = window.MLUtils;
+  /* Resolved per render so charts follow the active theme. */
+  const C = () => U.chartColors();
 
   if (!catalog || document.body.dataset.page !== "algorithm") {
     return;
@@ -171,7 +173,13 @@
     { id: "S8", x: 6.1, y: 5.3 },
   ];
 
-  const clusterPalette = ["#1f7a70", "#d26f2f", "#2f4057", "#7a5c35"];
+  /* Resolved on each call rather than once at load, so cluster colours
+     follow the active theme instead of freezing the palette that
+     happened to be active when the script first ran. */
+  const clusterPaletteAt = (index) => {
+    const palette = [C().a, C().b, C().c, C().d];
+    return palette[((index % palette.length) + palette.length) % palette.length];
+  };
 
   function pagePrefix() {
     return "./";
@@ -714,8 +722,8 @@
             width: boxWidth,
             height: 72,
             rx: 12,
-            fill: active ? "#0d7a72" : "#ffffff",
-            stroke: active ? "#0d7a72" : "#c3ccd6",
+            fill: active ? C().a : C().plotBg,
+            stroke: active ? C().a : C().faint,
             "stroke-width": "2",
           })
         );
@@ -726,7 +734,7 @@
             "text-anchor": "middle",
             "font-size": "12.5",
             "font-weight": "700",
-            fill: active ? "#ffffff" : "#101720",
+            fill: active ? C().onFill : C().ink,
           })
         ).textContent = stage.label;
         pipeline.appendChild(
@@ -736,7 +744,7 @@
             "text-anchor": "middle",
             "font-size": "10.5",
             "font-family": "var(--mono)",
-            fill: active ? "rgba(255,255,255,0.85)" : "#5d6b7a",
+            fill: active ? U.tint(C().onFill, 0.85) : C().neutral,
           })
         ).textContent = stage.sub;
         if (index < stages.length - 1) {
@@ -744,7 +752,7 @@
           pipeline.appendChild(
             U.svgEl("path", {
               d: `M ${ax} 98 L ${ax + gap - 8} 98 M ${ax + gap - 14} 93 L ${ax + gap - 8} 98 L ${ax + gap - 14} 103`,
-              stroke: index < revealed - 1 ? "#0d7a72" : "#c3ccd6",
+              stroke: index < revealed - 1 ? C().a : C().faint,
               "stroke-width": "2",
               fill: "none",
             })
@@ -762,9 +770,9 @@
       U.clear(splitPlot);
       const totalWidth = 520;
       const segments = [
-        { label: "Train", count: nTrain, color: "#0d7a72" },
-        { label: "Validation", count: nVal, color: "#2563a8" },
-        { label: "Test", count: nTest, color: "#c2410c" },
+        { label: "Train", count: nTrain, color: C().a },
+        { label: "Validation", count: nVal, color: C().c },
+        { label: "Test", count: nTest, color: C().b },
       ];
       splitPlot.appendChild(U.svgEl("text", { x: 20, y: 28, class: "svg-title" })).textContent =
         `Where your ${n} examples go`;
@@ -781,7 +789,7 @@
               x: cursorX + width / 2,
               y: 80,
               "text-anchor": "middle",
-              fill: "#fff",
+              fill: C().onFill,
               "font-size": "12",
               "font-weight": "700",
             })
@@ -791,7 +799,7 @@
               x: cursorX + width / 2,
               y: 97,
               "text-anchor": "middle",
-              fill: "rgba(255,255,255,0.9)",
+              fill: U.tint(C().plotBg, 0.92),
               "font-size": "11",
               "font-family": "var(--mono)",
             })
@@ -810,13 +818,13 @@
             y1: 148,
             x2: centre + ciWidth / 2,
             y2: 148,
-            stroke: "#b42318",
+            stroke: C().danger,
             "stroke-width": "4",
             "stroke-linecap": "round",
           })
         );
         splitPlot.appendChild(
-          U.svgEl("circle", { cx: centre, cy: 148, r: 5, fill: "#101720" })
+          U.svgEl("circle", { cx: centre, cy: 148, r: 5, fill: C().ink })
         );
         splitPlot.appendChild(
           U.svgEl("text", { x: centre, y: 172, class: "svg-label", "text-anchor": "middle" })
@@ -838,6 +846,7 @@
     [taskInput, nInput, testInput, valInput, accInput, foldsInput].forEach((input) =>
       input.addEventListener("input", render)
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -1060,7 +1069,7 @@
             cx: chart.xScale(point.x),
             cy: chart.yScale(point.y),
             r: isLabelled ? 6 : 4.5,
-            fill: isLabelled ? (point.label ? "#c2410c" : "#0d7a72") : "#c3ccd6",
+            fill: isLabelled ? (point.label ? C().b : C().a) : C().faint,
             stroke: isLabelled ? "#fff" : "none",
             "stroke-width": "1.5",
             opacity: isLabelled ? "0.95" : "0.85",
@@ -1082,6 +1091,7 @@
       render();
     });
     [coverageInput, nInput, costInput, seedInput].forEach((input) => input.addEventListener("input", render));
+    U.onRedraw(render);
     render();
   }
 
@@ -1296,7 +1306,7 @@
           U.svgEl("text", { x: barLeft - 10, y: y + 13, class: "svg-label", "text-anchor": "end" })
         ).textContent = family.name;
         plot.appendChild(
-          U.svgEl("rect", { x: barLeft, y, width: barMax, height: 20, rx: 5, fill: "#eef1f5" })
+          U.svgEl("rect", { x: barLeft, y, width: barMax, height: 20, rx: 5, fill: C().plotBg })
         );
         plot.appendChild(
           U.svgEl("rect", {
@@ -1305,7 +1315,7 @@
             width,
             height: 20,
             rx: 5,
-            fill: index === 0 ? "#0d7a72" : "#8895a3",
+            fill: index === 0 ? C().a : C().neutral,
             opacity: index === 0 ? 1 : 0.6,
           })
         );
@@ -1314,7 +1324,7 @@
             x: barLeft + width + 8,
             y: y + 14,
             class: "svg-label",
-            fill: index === 0 ? "#0d7a72" : "#5d6b7a",
+            fill: index === 0 ? C().a : C().neutral,
           })
         ).textContent = `${U.round(family.normalized * 100, 0)}%`;
       });
@@ -1334,6 +1344,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -1543,14 +1554,14 @@
         title: "Prior, MLE fit, and posterior predictive",
       });
 
-      plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(priorCurve, chart.xScale, chart.yScale), fill: "none", stroke: "#6f8a88", "stroke-width": "2.4", "stroke-dasharray": "4 6" }));
+      plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(priorCurve, chart.xScale, chart.yScale), fill: "none", stroke: C().neutral, "stroke-width": "2.4", "stroke-dasharray": "4 6" }));
       plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(mleCurve, chart.xScale, chart.yScale), class: "curve-primary" }));
       plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(posteriorCurve, chart.xScale, chart.yScale), class: "curve-secondary" }));
       samples.forEach((sample) => {
         const x = chart.xScale(sample);
-        plot.appendChild(U.svgEl("line", { x1: x, y1: chart.yScale(0), x2: x, y2: chart.yScale(yMax * 0.08), stroke: "#2f4057", "stroke-width": "1.8" }));
+        plot.appendChild(U.svgEl("line", { x1: x, y1: chart.yScale(0), x2: x, y2: chart.yScale(yMax * 0.08), stroke: C().ink, "stroke-width": "1.8" }));
       });
-      plot.appendChild(U.svgEl("line", { x1: chart.xScale(query), y1: chart.yScale(0), x2: chart.xScale(query), y2: chart.yScale(yMax * 0.9), stroke: "#d26f2f", "stroke-width": "2", "stroke-dasharray": "6 6" }));
+      plot.appendChild(U.svgEl("line", { x1: chart.xScale(query), y1: chart.yScale(0), x2: chart.xScale(query), y2: chart.yScale(yMax * 0.9), stroke: C().b, "stroke-width": "2", "stroke-dasharray": "6 6" }));
     }
 
     stepButton.addEventListener("click", () => {
@@ -1567,6 +1578,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -1681,9 +1693,9 @@
       U.renderSteps(stepsNode, steps, revealed);
 
       const bars = [
-        { label: "bias²", value: bias * bias, color: "#d26f2f" },
-        { label: "variance", value: variance, color: "#1f7a70" },
-        { label: "mse", value: mse, color: "#2f4057" },
+        { label: "bias²", value: bias * bias, color: C().b },
+        { label: "variance", value: variance, color: C().a },
+        { label: "mse", value: mse, color: C().ink },
       ];
       const yMax = Math.max(...bars.map((item) => item.value), 0.02) * 1.25;
       const chart = U.makeChart(plot, {
@@ -1714,6 +1726,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -1887,13 +1900,13 @@
         if (!Number.isFinite(row.a) || !Number.isFinite(row.b)) {
           return;
         }
-        plot.appendChild(U.svgEl("circle", { cx: chart.xScale(row.a), cy: chart.yScale(row.b), r: 5, fill: "#6d6457", opacity: "0.24" }));
+        plot.appendChild(U.svgEl("circle", { cx: chart.xScale(row.a), cy: chart.yScale(row.b), r: 5, fill: C().neutral, opacity: "0.24" }));
       });
       cleaned.forEach((row) => {
         if (row.dropped || !Number.isFinite(row.a) || !Number.isFinite(row.b)) {
           return;
         }
-        drawScatterPoint(plot, chart, row, row.changed ? "#d26f2f" : "#1f7a70", row.changed ? 8 : 7);
+        drawScatterPoint(plot, chart, row, row.changed ? C().b : C().a, row.changed ? 8 : 7);
       });
     }
 
@@ -1917,6 +1930,7 @@
 
     button.addEventListener("click", render);
     [methodInput, clampInput].forEach((input) => input.addEventListener("input", render));
+    U.onRedraw(render);
     render();
   }
 
@@ -2027,10 +2041,10 @@
       });
       samples.forEach((sample) => {
         const x = chart.xScale(sample);
-        plot.appendChild(U.svgEl("line", { x1: x, y1: chart.yScale(0), x2: x, y2: chart.yScale(yMax * 0.08), stroke: "#2f4057", "stroke-width": "1.6" }));
+        plot.appendChild(U.svgEl("line", { x1: x, y1: chart.yScale(0), x2: x, y2: chart.yScale(yMax * 0.08), stroke: C().ink, "stroke-width": "1.6" }));
       });
       for (let index = 0; index < Math.min(revealed, samples.length); index += 1) {
-        plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(kernels[index], chart.xScale, chart.yScale), fill: "none", stroke: index % 2 ? "#d26f2f" : "#1f7a70", "stroke-width": "2.2", opacity: "0.6" }));
+        plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(kernels[index], chart.xScale, chart.yScale), fill: "none", stroke: index % 2 ? C().b : C().a, "stroke-width": "2.2", opacity: "0.6" }));
       }
       if (revealed > samples.length) {
         plot.appendChild(U.svgEl("path", { d: U.pathFromPoints(total, chart.xScale, chart.yScale), class: "curve-primary" }));
@@ -2052,6 +2066,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -2297,7 +2312,7 @@
       table.innerHTML = sorted
         .map(
           (point, index) => `
-            <tr style="background:${index < visibleCount ? "rgba(31,122,112,0.08)" : "transparent"}">
+            <tr style="background:${index < visibleCount ? U.tint(C().a, 0.08) : "transparent"}">
               <td>${index + 1}</td>
               <td>${point.id} (${U.round(point.x, 1)}, ${U.round(point.y, 1)})</td>
               <td>${point.label}</td>
@@ -2319,8 +2334,8 @@
             cy: chart.yScale(query.y),
             rx: Math.abs(chart.xScale(radius) - chart.xScale(0)),
             ry: Math.abs(chart.yScale(0) - chart.yScale(radius)),
-            fill: "rgba(47,64,87,0.06)",
-            stroke: "rgba(47,64,87,0.35)",
+            fill: U.tint(C().ink, 0.06),
+            stroke: U.tint(C().ink, 0.35),
             "stroke-dasharray": "5 5",
           })
         );
@@ -2333,7 +2348,7 @@
             y1: chart.yScale(query.y),
             x2: chart.xScale(point.x),
             y2: chart.yScale(point.y),
-            stroke: "#2f4057",
+            stroke: C().ink,
             "stroke-width": "2",
             opacity: "0.55",
           })
@@ -2345,7 +2360,7 @@
           plot,
           chart,
           point,
-          point.label === "A" ? "#1f7a70" : "#d26f2f",
+          point.label === "A" ? C().a : C().b,
           visible.some((entry) => entry.id === point.id) ? 9 : 7,
           (target, position) => {
             target.x = Number(U.round(position.x, 2));
@@ -2361,7 +2376,7 @@
       const qy = chart.yScale(query.y);
       const marker = U.svgEl("polygon", {
         points: `${qx},${qy - 11} ${qx + 11},${qy} ${qx},${qy + 11} ${qx - 11},${qy}`,
-        fill: "#2f4057",
+        fill: C().ink,
       });
       plot.appendChild(marker);
       U.draggable(marker, plot, chart, (position) => {
@@ -2389,6 +2404,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -2803,7 +2819,7 @@
             plot,
             chart,
             { id: row.id, x: row.hours, y: row.attendance },
-            Number(row.label) ? "#1f7a70" : "#d26f2f",
+            Number(row.label) ? C().a : C().b,
             7,
             (_target, position) => {
               row.hours = Number(U.round(position.x, 2));
@@ -2843,7 +2859,7 @@
               y1: chart.yScale(prediction),
               x2: chart.xScale(Math.min(leaf.region.xMax, chart.xDomain[1])),
               y2: chart.yScale(prediction),
-              stroke: "#1f7a70",
+              stroke: C().a,
               "stroke-width": "4",
             })
           );
@@ -2853,7 +2869,7 @@
             plot,
             chart,
             { id: row.id, x: row.hours, y: row.score },
-            "#635545",
+            C().neutral,
             7,
             (_target, position) => {
               row.hours = Number(U.round(position.x, 2));
@@ -2890,6 +2906,7 @@
 
     buildEditor();
     resetState();
+    U.onRedraw(render);
     render();
   }
 
@@ -3418,8 +3435,8 @@
           const score = scorePoint({ x, y }, params);
           const fill =
             score >= 0
-              ? `rgba(31,122,112,${0.08 + Math.min(Math.abs(score) / 6, 0.22)})`
-              : `rgba(210,111,47,${0.08 + Math.min(Math.abs(score) / 6, 0.22)})`;
+              ? U.tint(C().a, 0.08 + Math.min(Math.abs(score) / 6, 0.22))
+              : U.tint(C().b, 0.08 + Math.min(Math.abs(score) / 6, 0.22));
           const x1 = chart.xScale(x - 0.28);
           const y1 = chart.yScale(y + 0.42);
           const x2 = chart.xScale(x + 0.28);
@@ -3460,7 +3477,7 @@
           plot,
           chart,
           row,
-          row.label === 1 ? "#1f7a70" : "#d26f2f",
+          row.label === 1 ? C().a : C().b,
           state.lastId === row.id ? 10 : 7,
           (target, position) => {
             target.x = Number(U.round(position.x, 2));
@@ -3511,6 +3528,7 @@
     });
 
     resetState();
+    U.onRedraw(render);
     render();
   }
 
@@ -3624,7 +3642,7 @@
 
       U.clear(plot);
       const positions = { A: { x: 110, y: 140 }, B: { x: 280, y: 140 }, C: { x: 450, y: 140 } };
-      const stroke = active ? "#1f7a70" : "#6d6457";
+      const stroke = active ? C().a : C().neutral;
       const opacity = active ? "0.95" : "0.35";
       function drawLine(from, to, directed) {
         plot.appendChild(U.svgEl("line", { x1: positions[from].x, y1: positions[from].y, x2: positions[to].x, y2: positions[to].y, stroke, "stroke-width": "4", opacity }));
@@ -3658,13 +3676,14 @@
       }
       Object.entries(positions).forEach(([name, pos]) => {
         const observedNode = observed.toUpperCase() === name;
-        plot.appendChild(U.svgEl("circle", { cx: pos.x, cy: pos.y, r: 32, fill: observedNode ? "#d26f2f" : "#fffdf8", stroke: observedNode ? "#d26f2f" : "#2f4057", "stroke-width": "3" }));
+        plot.appendChild(U.svgEl("circle", { cx: pos.x, cy: pos.y, r: 32, fill: observedNode ? C().b : C().plotBg, stroke: observedNode ? C().b : C().ink, "stroke-width": "3" }));
         plot.appendChild(U.svgEl("text", { x: pos.x, y: pos.y + 6, "text-anchor": "middle", class: "svg-title" })).textContent = name;
       });
     }
 
     button.addEventListener("click", render);
     [structureInput, observeInput].forEach((input) => input.addEventListener("input", render));
+    U.onRedraw(render);
     render();
   }
 
@@ -3776,7 +3795,7 @@
       plot.appendChild(U.svgEl("line", { x1: 152, y1: 140, x2: 248, y2: 140, class: "cluster-line" }));
       plot.appendChild(U.svgEl("line", { x1: 312, y1: 140, x2: 408, y2: 140, class: "cluster-line" }));
       [left, probs[1] >= probs[0] ? 1 : 0, right].forEach((value, index) => {
-        plot.appendChild(U.svgEl("circle", { cx: positions[index].x, cy: positions[index].y, r: 34, fill: index === 1 ? "#fffdf8" : value ? "#1f7a70" : "#d26f2f", stroke: "#2f4057", "stroke-width": "3" }));
+        plot.appendChild(U.svgEl("circle", { cx: positions[index].x, cy: positions[index].y, r: 34, fill: index === 1 ? C().plotBg : value ? C().a : C().b, stroke: C().ink, "stroke-width": "3" }));
         plot.appendChild(U.svgEl("text", { x: positions[index].x, y: positions[index].y - 3, "text-anchor": "middle", class: "svg-title" })).textContent = `X${index + 1}`;
         plot.appendChild(U.svgEl("text", { x: positions[index].x, y: positions[index].y + 18, "text-anchor": "middle", class: "svg-label" })).textContent = index === 1 ? `P(1)=${U.round(probs[1], 2)}` : String(value);
       });
@@ -3796,6 +3815,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -3889,10 +3909,10 @@
       const positions = [{ x: 110, y: 140 }, { x: 280, y: 140 }, { x: 450, y: 140 }];
       plot.appendChild(U.svgEl("text", { x: 280, y: 28, class: "svg-title", "text-anchor": "middle" })).textContent = "Message passing schedule";
       [[0, 1], [1, 2]].forEach(([from, to]) => {
-        plot.appendChild(U.svgEl("line", { x1: positions[from].x + 32, y1: positions[from].y, x2: positions[to].x - 32, y2: positions[to].y, stroke: "#2f4057", "stroke-width": "3", opacity: "0.5" }));
+        plot.appendChild(U.svgEl("line", { x1: positions[from].x + 32, y1: positions[from].y, x2: positions[to].x - 32, y2: positions[to].y, stroke: C().ink, "stroke-width": "3", opacity: "0.5" }));
       });
       [belief1, belief2, belief3].forEach((belief, index) => {
-        plot.appendChild(U.svgEl("circle", { cx: positions[index].x, cy: positions[index].y, r: 34, fill: "#fffdf8", stroke: "#2f4057", "stroke-width": "3" }));
+        plot.appendChild(U.svgEl("circle", { cx: positions[index].x, cy: positions[index].y, r: 34, fill: C().plotBg, stroke: C().ink, "stroke-width": "3" }));
         plot.appendChild(U.svgEl("text", { x: positions[index].x, y: positions[index].y - 4, class: "svg-title", "text-anchor": "middle" })).textContent = `X${index + 1}`;
         plot.appendChild(U.svgEl("text", { x: positions[index].x, y: positions[index].y + 18, class: "svg-label", "text-anchor": "middle" })).textContent = `P(1)=${U.round(belief[1], 2)}`;
       });
@@ -3912,6 +3932,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -4109,7 +4130,7 @@
             y1: chart.yScale(pi[0]),
             x2: chart.xScale(Math.max(history.length - 1, 1)),
             y2: chart.yScale(pi[0]),
-            stroke: "#b03030",
+            stroke: C().danger,
             "stroke-width": "2",
             "stroke-dasharray": "6 6",
             opacity: "0.75",
@@ -4127,7 +4148,7 @@
       );
       rainPoints.forEach((point) => {
         plot.appendChild(
-          U.svgEl("circle", { cx: chart.xScale(point.x), cy: chart.yScale(point.y), r: 5, fill: "#1f7a70" })
+          U.svgEl("circle", { cx: chart.xScale(point.x), cy: chart.yScale(point.y), r: 5, fill: C().a })
         );
       });
     }
@@ -4150,6 +4171,7 @@
     });
 
     reset();
+    U.onRedraw(render);
     render();
   }
 
@@ -4506,7 +4528,7 @@
               width: 18,
               height: 10,
               rx: 3,
-              fill: stateIndex === 0 ? "#1f7a70" : "#d26f2f",
+              fill: stateIndex === 0 ? C().a : C().b,
               opacity: "0.85",
             })
           );
@@ -4518,7 +4540,7 @@
         );
         points.forEach((point, index) => {
           plot.appendChild(
-            U.svgEl("circle", { cx: chart.xScale(point.x), cy: chart.yScale(point.y), r: 6, fill: "#1f7a70" })
+            U.svgEl("circle", { cx: chart.xScale(point.x), cy: chart.yScale(point.y), r: 6, fill: C().a })
           );
           plot.appendChild(
             U.svgEl("text", {
@@ -4599,6 +4621,7 @@
       render();
     });
 
+    U.onRedraw(render);
     render();
   }
 
@@ -4889,7 +4912,7 @@
             y1: chart.yScale(point.y),
             x2: chart.xScale(state.reps[cluster].x),
             y2: chart.yScale(state.reps[cluster].y),
-            stroke: clusterPalette[cluster % clusterPalette.length],
+            stroke: clusterPaletteAt(cluster),
             "stroke-width": "1.2",
             opacity: "0.35",
           })
@@ -4902,7 +4925,7 @@
           plot,
           chart,
           point,
-          cluster >= 0 ? clusterPalette[cluster % clusterPalette.length] : "#6d6457",
+          cluster >= 0 ? clusterPaletteAt(cluster) : C().neutral,
           7,
           (target, position) => {
             target.x = Number(U.round(position.x, 2));
@@ -4919,8 +4942,8 @@
         const y = chart.yScale(rep.y);
         const marker = U.svgEl("polygon", {
           points: `${x},${y - 12} ${x + 12},${y} ${x},${y + 12} ${x - 12},${y}`,
-          fill: clusterPalette[index % clusterPalette.length],
-          stroke: "#fff",
+          fill: clusterPaletteAt(index),
+          stroke: C().ring,
           "stroke-width": "2.5",
         });
         plot.appendChild(marker);
@@ -4958,6 +4981,7 @@
     );
 
     resetState();
+    U.onRedraw(render);
     render();
   }
 
@@ -5249,7 +5273,7 @@
 
       const colorFor = new Map();
       state.clusters.forEach((cluster, index) => {
-        cluster.members.forEach((member) => colorFor.set(member.id, clusterPalette[index % clusterPalette.length]));
+        cluster.members.forEach((member) => colorFor.set(member.id, clusterPaletteAt(index)));
       });
 
       function draw(node) {
@@ -5257,7 +5281,7 @@
           const x = positions.get(node.id);
           const y = yFor(0);
           dendro.appendChild(
-            U.svgEl("circle", { cx: x, cy: y, r: 4, fill: colorFor.get(node.members[0].id) || "#6d6457" })
+            U.svgEl("circle", { cx: x, cy: y, r: 4, fill: colorFor.get(node.members[0].id) || C().neutral })
           );
           dendro.appendChild(
             U.svgEl("text", { x, y: y + 20, class: "svg-label", "text-anchor": "middle" })
@@ -5420,7 +5444,7 @@
       const colorMap = {};
       state.clusters.forEach((cluster, index) => {
         cluster.members.forEach((point) => {
-          colorMap[point.id] = clusterPalette[index % clusterPalette.length];
+          colorMap[point.id] = clusterPaletteAt(index);
         });
       });
 
@@ -5444,7 +5468,7 @@
               y1: chart.yScale(centroid.y),
               x2: chart.xScale(member.x),
               y2: chart.yScale(member.y),
-              stroke: clusterPalette[index % clusterPalette.length],
+              stroke: clusterPaletteAt(index),
               "stroke-width": "1.4",
               opacity: "0.4",
             })
@@ -5453,7 +5477,7 @@
       });
 
       points.forEach((point, index) => {
-        drawScatterPoint(plot, chart, point, colorMap[point.id] || "#6d6457", 8, (target, position) => {
+        drawScatterPoint(plot, chart, point, colorMap[point.id] || C().neutral, 8, (target, position) => {
           target.x = Number(U.round(position.x, 2));
           target.y = Number(U.round(position.y, 2));
           editor.setCell(index, "x", target.x);
@@ -5488,6 +5512,7 @@
     );
 
     resetState();
+    U.onRedraw(render);
     render();
   }
 
@@ -5747,8 +5772,8 @@
               cy: chart.yScale(point.y),
               rx: Math.abs(chart.xScale(point.x + eps) - chart.xScale(point.x)),
               ry: Math.abs(chart.yScale(point.y + eps) - chart.yScale(point.y)),
-              fill: "rgba(31,122,112,0.05)",
-              stroke: "rgba(31,122,112,0.22)",
+              fill: U.tint(C().a, 0.05),
+              stroke: U.tint(C().a, 0.22),
               "stroke-width": "1",
             })
           );
@@ -5762,8 +5787,8 @@
             cy: chart.yScale(activePoint.y),
             rx: Math.abs(chart.xScale(activePoint.x + eps) - chart.xScale(activePoint.x)),
             ry: Math.abs(chart.yScale(activePoint.y + eps) - chart.yScale(activePoint.y)),
-            fill: "rgba(31,122,112,0.1)",
-            stroke: "#1f7a70",
+            fill: U.tint(C().a, 0.1),
+            stroke: C().a,
             "stroke-width": "2",
             "stroke-dasharray": "6 6",
           })
@@ -5774,10 +5799,10 @@
         const item = state[point.id] || { clusterId: null, type: "unvisited" };
         const color =
           item.clusterId !== null
-            ? clusterPalette[(item.clusterId - 1) % clusterPalette.length]
+            ? clusterPaletteAt((item.clusterId - 1))
             : item.type === "noise"
-            ? "#b4473f"
-            : "#6d6457";
+            ? C().danger
+            : C().neutral;
         drawScatterPoint(plot, chart, point, color, active === point.id ? 9 : 7, (target, position) => {
           target.x = Number(U.round(position.x, 2));
           target.y = Number(U.round(position.y, 2));
@@ -5810,6 +5835,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -6043,8 +6069,8 @@
             cy: chart.yScale(query.y),
             rx: Math.abs(chart.xScale(radius) - chart.xScale(0)),
             ry: Math.abs(chart.yScale(0) - chart.yScale(radius)),
-            fill: "rgba(47,64,87,0.05)",
-            stroke: "rgba(47,64,87,0.4)",
+            fill: U.tint(C().ink, 0.05),
+            stroke: U.tint(C().ink, 0.4),
             "stroke-dasharray": "5 5",
           })
         );
@@ -6056,8 +6082,8 @@
         plot.appendChild(
           U.svgEl("polygon", {
             points: `${cx},${cy - ry} ${cx + rx},${cy} ${cx},${cy + ry} ${cx - rx},${cy}`,
-            fill: "rgba(47,64,87,0.05)",
-            stroke: "rgba(47,64,87,0.4)",
+            fill: U.tint(C().ink, 0.05),
+            stroke: U.tint(C().ink, 0.4),
             "stroke-dasharray": "5 5",
           })
         );
@@ -6069,7 +6095,7 @@
             y1: chart.yScale(0),
             x2: chart.xScale(query.x * 3),
             y2: chart.yScale(query.y * 3),
-            stroke: "rgba(47,64,87,0.4)",
+            stroke: U.tint(C().ink, 0.4),
             "stroke-dasharray": "5 5",
           })
         );
@@ -6080,7 +6106,7 @@
           plot,
           chart,
           point,
-          scored[0].id === point.id ? "#1f7a70" : "#d26f2f",
+          scored[0].id === point.id ? C().a : C().b,
           scored[0].id === point.id ? 9 : 7,
           (target, position) => {
             target.x = Number(U.round(position.x, 2));
@@ -6096,7 +6122,7 @@
       const qy = chart.yScale(query.y);
       const marker = U.svgEl("polygon", {
         points: `${qx},${qy - 11} ${qx + 11},${qy} ${qx},${qy + 11} ${qx - 11},${qy}`,
-        fill: "#2f4057",
+        fill: C().ink,
       });
       plot.appendChild(marker);
       U.draggable(marker, plot, chart, (position) => {
@@ -6123,6 +6149,7 @@
         render();
       })
     );
+    U.onRedraw(render);
     render();
   }
 
@@ -6346,7 +6373,7 @@
                 y1: chart.yScale(points[i].y),
                 x2: chart.xScale(points[j].x),
                 y2: chart.yScale(points[j].y),
-                stroke: assignments[i] !== assignments[j] ? "#b4473f" : "#2f4057",
+                stroke: assignments[i] !== assignments[j] ? C().danger : C().ink,
                 "stroke-width": 1 + 4 * W[i][j],
                 opacity: assignments[i] !== assignments[j] ? "0.5" : "0.22",
               })
@@ -6355,7 +6382,7 @@
         }
       }
       points.forEach((point, index) => {
-        drawScatterPoint(plot, chart, point, clusterPalette[assignments[index]], 8, (target, position) => {
+        drawScatterPoint(plot, chart, point, clusterPaletteAt(assignments[index]), 8, (target, position) => {
           target.x = Number(U.round(position.x, 2));
           target.y = Number(U.round(position.y, 2));
           editor.setCell(index, "x", target.x);
@@ -6377,7 +6404,7 @@
           y1: barChart.yScale(cut),
           x2: barChart.xScale(n + 1),
           y2: barChart.yScale(cut),
-          stroke: "#b4473f",
+          stroke: C().danger,
           "stroke-dasharray": "5 5",
         })
       );
@@ -6392,7 +6419,7 @@
             y: Math.min(y, zeroY),
             width: x2 - x1,
             height: Math.abs(zeroY - y),
-            fill: clusterPalette[assignments[index]],
+            fill: clusterPaletteAt(assignments[index]),
             rx: "6",
           })
         );
@@ -6405,6 +6432,7 @@
     const scheduleRender = U.rafThrottle(render);
 
     [sigmaInput, thresholdInput].forEach((input) => input.addEventListener("input", render));
+    U.onRedraw(render);
     render();
   }
 
@@ -6534,7 +6562,7 @@
     const tableNode = rootNode.querySelector("#act-table");
     const stepsNode = rootNode.querySelector("#act-steps");
 
-    const colors = { sigmoid: "#0d7a72", tanh: "#2563a8", relu: "#c2410c", leaky: "#7c3aed" };
+    const colors = { sigmoid: C().a, tanh: C().c, relu: C().b, leaky: C().d };
 
     function render() {
       const key = fnInput.value;
@@ -6650,7 +6678,7 @@
         cy: chart.yScale(U.clamp(value, yMin, yMax)),
         r: 7,
         fill: colors[key],
-        stroke: "#fff",
+        stroke: C().ring,
         "stroke-width": "2.5",
       });
       plot.appendChild(marker);
@@ -6698,7 +6726,7 @@
           cy: derivChart.yScale(U.clamp(slope, -0.1, 1.15)),
           r: 6,
           fill: colors[key],
-          stroke: "#fff",
+          stroke: C().ring,
           "stroke-width": "2.5",
         })
       );
@@ -6708,7 +6736,7 @@
           y1: derivChart.yScale(1),
           x2: derivChart.xScale(6),
           y2: derivChart.yScale(1),
-          stroke: "#b42318",
+          stroke: C().danger,
           "stroke-dasharray": "5 5",
           opacity: "0.5",
         })
@@ -6721,6 +6749,7 @@
     const scheduleRender = U.rafThrottle(render);
 
     [fnInput, zInput, layersInput, compareInput].forEach((input) => input.addEventListener("input", render));
+    U.onRedraw(render);
     render();
   }
 
@@ -6964,7 +6993,7 @@
               y1: chart.yScale(surface.loss(from)),
               x2: chart.xScale(value),
               y2: chart.yScale(surface.loss(value)),
-              stroke: "#c2410c",
+              stroke: C().b,
               "stroke-width": "1.8",
               opacity: "0.5",
             })
@@ -6976,7 +7005,7 @@
               cx: chart.xScale(value),
               cy: chart.yScale(surface.loss(value)),
               r: index === path.length - 1 ? 8 : 3.5,
-              fill: index === path.length - 1 ? "#c2410c" : "rgba(194,65,12,0.45)",
+              fill: index === path.length - 1 ? C().b : U.tint(C().b, 0.45),
               stroke: index === path.length - 1 ? "#fff" : "none",
               "stroke-width": "2.5",
             })
@@ -6991,7 +7020,7 @@
             y1: chart.yScale(loss - gradient * tangentSpan),
             x2: chart.xScale(x + tangentSpan),
             y2: chart.yScale(loss + gradient * tangentSpan),
-            stroke: "#0d7a72",
+            stroke: C().a,
             "stroke-width": "2.4",
             "stroke-dasharray": "6 4",
           })
@@ -7023,13 +7052,13 @@
         U.svgEl("path", {
           d: U.pathFromPoints(lossValues.map((value, index) => ({ x: index, y: value })), lossChart.xScale, lossChart.yScale),
           fill: "none",
-          stroke: "#c2410c",
+          stroke: C().b,
           "stroke-width": "2.6",
         })
       );
       lossValues.forEach((value, index) => {
         lossPlot.appendChild(
-          U.svgEl("circle", { cx: lossChart.xScale(index), cy: lossChart.yScale(value), r: 3.5, fill: "#c2410c" })
+          U.svgEl("circle", { cx: lossChart.xScale(index), cy: lossChart.yScale(value), r: 3.5, fill: C().b })
         );
       });
     }
@@ -7056,6 +7085,7 @@
     );
 
     reset();
+    U.onRedraw(render);
     render();
   }
 
@@ -7518,11 +7548,11 @@
       U.clear(net);
       const { width, height } = U.viewBoxSize(net);
       const columns = [
-        { label: "input", values: state.inputs, color: "#2563a8", ids: state.inputs.map((_, i) => `in-${i}`) },
+        { label: "input", values: state.inputs, color: C().c, ids: state.inputs.map((_, i) => `in-${i}`) },
         ...state.layers.map((layer, index) => ({
           label: index === state.layers.length - 1 ? "output" : `hidden ${index + 1}`,
           values: layer.neurons.map((n) => n.a),
-          color: index === state.layers.length - 1 ? "#c2410c" : "#7c3aed",
+          color: index === state.layers.length - 1 ? C().b : C().d,
           ids: layer.neurons.map((_, i) => `l${index}-${i}`),
           layerIndex: index,
         })),
@@ -7563,7 +7593,7 @@
                 y1: a.y,
                 x2: b.x,
                 y2: b.y,
-                stroke: isActive ? "#0d7a72" : weight >= 0 ? "#c3ccd6" : "#e8b4ad",
+                stroke: isActive ? C().a : weight >= 0 ? C().faint : C().faint,
                 "stroke-width": isActive ? 2.4 : Math.min(0.5 + Math.abs(weight) * 1.4, 3),
                 opacity: isActive ? 0.95 : 0.6,
               })
@@ -7587,7 +7617,7 @@
               r: radius,
               fill: column.color,
               opacity: isActive ? 1 : 0.85,
-              stroke: isActive ? "#0d7a72" : "#fff",
+              stroke: isActive ? C().a : "#fff",
               "stroke-width": isActive ? 4 : 2,
             })
           );
@@ -7596,7 +7626,7 @@
               x: pos.x,
               y: pos.y + 4,
               "text-anchor": "middle",
-              fill: "#fff",
+              fill: C().onFill,
               "font-size": radius > 18 ? "11" : "9",
               "font-family": "var(--mono)",
               "font-weight": "600",
@@ -7614,9 +7644,9 @@
           cx: lx,
           cy: ly,
           r: 24,
-          fill: "#b42318",
+          fill: C().danger,
           opacity: showLoss ? 1 : 0.35,
-          stroke: "#fff",
+          stroke: C().ring,
           "stroke-width": 2,
         })
       );
@@ -7625,7 +7655,7 @@
           x: lx,
           y: ly + 4,
           "text-anchor": "middle",
-          fill: "#fff",
+          fill: C().onFill,
           "font-size": "10",
           "font-family": "var(--mono)",
           "font-weight": "600",
@@ -7663,7 +7693,7 @@
             y,
             width: x2 - x1,
             height: Math.max(chart.yScale(0) - y, 1),
-            fill: index === magnitudes.length - 1 ? "#c2410c" : "#7c3aed",
+            fill: index === magnitudes.length - 1 ? C().b : C().d,
             rx: 5,
             opacity: 0.9,
           })
@@ -7697,14 +7727,14 @@
         U.svgEl("path", {
           d: U.pathFromPoints(lossHistory.map((value, index) => ({ x: index, y: value })), chart.xScale, chart.yScale),
           fill: "none",
-          stroke: "#c2410c",
+          stroke: C().b,
           "stroke-width": 2.6,
         })
       );
       if (lossHistory.length <= 60) {
         lossHistory.forEach((value, index) => {
           lossPlot.appendChild(
-            U.svgEl("circle", { cx: chart.xScale(index), cy: chart.yScale(value), r: 3, fill: "#c2410c" })
+            U.svgEl("circle", { cx: chart.xScale(index), cy: chart.yScale(value), r: 3, fill: C().b })
           );
         });
       }
@@ -7862,6 +7892,7 @@
 
     buildNetwork(true);
     buildParamEditors();
+    U.onRedraw(render);
     render();
   }
 
@@ -8060,22 +8091,22 @@
 
       for (let i = 0; i < SIZE; i += 24) {
         for (let j = 0; j < SIZE; j += 24) {
-          context.fillStyle = (i + j) % 48 === 0 ? "#e6ebf0" : "#ffffff";
+          context.fillStyle = (i + j) % 48 === 0 ? C().faint : "#ffffff";
           context.fillRect(i, j, 24, 24);
         }
       }
 
       if (shape === "letter") {
-        context.fillStyle = "#2563a8";
+        context.fillStyle = C().c;
         context.fillRect(60, 48, 120, 24);
         context.fillRect(60, 48, 24, 144);
         context.fillRect(60, 108, 96, 24);
-        context.fillStyle = "#c2410c";
+        context.fillStyle = C().b;
         context.beginPath();
         context.arc(168, 168, 24, 0, Math.PI * 2);
         context.fill();
       } else if (shape === "grid") {
-        context.strokeStyle = "#0d7a72";
+        context.strokeStyle = C().a;
         context.lineWidth = 2;
         for (let i = 12; i < SIZE; i += 24) {
           context.beginPath();
@@ -8087,10 +8118,10 @@
           context.lineTo(SIZE, i);
           context.stroke();
         }
-        context.fillStyle = "#c2410c";
+        context.fillStyle = C().b;
         context.fillRect(SIZE / 2 - 6, SIZE / 2 - 6, 12, 12);
       } else {
-        const palette = ["#0d7a72", "#2563a8", "#c2410c", "#7c3aed"];
+        const palette = [C().a, C().c, C().b, C().d];
         palette.forEach((color, index) => {
           context.fillStyle = color;
           context.beginPath();
@@ -8351,8 +8382,8 @@
       plot.appendChild(
         U.svgEl("polygon", {
           points: corners.map(([x, y]) => `${chart.xScale(x)},${chart.yScale(y)}`).join(" "),
-          fill: "rgba(136,149,163,0.16)",
-          stroke: "#8895a3",
+          fill: U.tint(C().neutral, 0.16),
+          stroke: C().neutral,
           "stroke-width": "2",
           "stroke-dasharray": "5 4",
         })
@@ -8360,15 +8391,15 @@
       plot.appendChild(
         U.svgEl("polygon", {
           points: mapped.map(([x, y]) => `${chart.xScale(x)},${chart.yScale(y)}`).join(" "),
-          fill: "rgba(13,122,114,0.16)",
-          stroke: "#0d7a72",
+          fill: U.tint(C().a, 0.16),
+          stroke: C().a,
           "stroke-width": "2.6",
         })
       );
       /* Basis vectors: the columns of M are where î and ĵ land. */
       [
-        { from: [0, 0], to: mapped[1], color: "#c2410c", label: "î → column 1" },
-        { from: [0, 0], to: mapped[3], color: "#2563a8", label: "ĵ → column 2" },
+        { from: [0, 0], to: mapped[1], color: C().b, label: "î → column 1" },
+        { from: [0, 0], to: mapped[3], color: C().c, label: "ĵ → column 2" },
       ].forEach((arrow) => {
         plot.appendChild(
           U.svgEl("line", {
@@ -8421,6 +8452,7 @@
     syncParamVisibility();
     applyPreset();
     buildSource();
+    U.onRedraw(render);
     render();
   }
 

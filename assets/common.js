@@ -207,6 +207,73 @@
     return { width, height, padding, xScale, yScale, xInvert, yInvert, xDomain, yDomain };
   }
 
+
+  /* ── Theme-aware chart colours ────────────────────────────────
+     The SVG code cannot use CSS variables directly for attributes like
+     `fill` set via setAttribute, so resolve them once per render. Cached
+     per theme, and invalidated when the theme changes. */
+  let paletteCache = null;
+  let paletteTheme = null;
+
+  function chart_colors() {
+    const theme = document.documentElement.getAttribute("data-theme") || "light";
+    if (paletteCache && paletteTheme === theme) return paletteCache;
+    const styles = getComputedStyle(document.documentElement);
+    const read = (name, fallback) => (styles.getPropertyValue(name) || fallback).trim();
+    paletteCache = {
+      a: read("--c-a", "#0d7a72"),
+      b: read("--c-b", "#c2410c"),
+      c: read("--c-c", "#2563a8"),
+      d: read("--c-d", "#7c3aed"),
+      neutral: read("--c-neutral", "#6d6457"),
+      faint: read("--c-faint", "#c3ccd6"),
+      danger: read("--c-danger", "#b42318"),
+      ink: read("--c-ink", "#101720"),
+      grid: read("--c-grid", "rgba(16,23,32,0.08)"),
+      axis: read("--c-axis", "rgba(16,23,32,0.24)"),
+      ring: read("--c-node-ring", "#ffffff"),
+      onFill: read("--c-on-fill", "#ffffff"),
+      plotBg: read("--c-plot-bg", "#f6f8fa"),
+    };
+    paletteTheme = theme;
+    return paletteCache;
+  }
+
+  function invalidatePalette() {
+    paletteCache = null;
+  }
+
+  /* Labs paint colours into SVG attributes, so a theme switch cannot be
+     handled by CSS alone — the active lab re-registers its render here
+     and gets called once the new palette is in place. */
+  const redrawHandlers = [];
+
+  function onRedraw(fn) {
+    redrawHandlers.push(fn);
+  }
+
+  window.addEventListener("mls:themechange", () => {
+    invalidatePalette();
+    redrawHandlers.forEach((fn) => {
+      try {
+        fn();
+      } catch (error) {
+        /* One failing lab must not stop the others repainting. */
+      }
+    });
+  });
+
+  /* Translucent fill derived from a palette colour, for region shading. */
+  function tint(color, alpha) {
+    const probe = document.createElement("div");
+    probe.style.color = color;
+    document.body.appendChild(probe);
+    const rgb = getComputedStyle(probe).color.match(/\d+/g);
+    probe.remove();
+    if (!rgb) return color;
+    return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+  }
+
   /* ── Math typesetting (KaTeX) ─────────────────────────────────
      tex() returns an HTML string so it can be embedded directly in the
      template literals the lab engines already use. If KaTeX has not
@@ -810,10 +877,14 @@
     median,
     normalPosterior,
     parseNumberList,
+    chartColors: chart_colors,
+    invalidatePalette,
+    onRedraw,
     pathFromPoints,
     qsa,
     qs,
     rafThrottle,
+    tint,
     renderMetrics,
     renderSteps,
     renderSubstitution,

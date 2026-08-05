@@ -215,12 +215,58 @@
     return footer;
   }
 
+
+  /* ── Theme ────────────────────────────────────────────────────
+     Follows the OS by default. Once the user picks a theme it is
+     remembered and wins over the OS preference. The inline script in
+     each page's <head> sets the initial attribute so there is no flash
+     of the wrong theme before this file runs. */
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") || "light";
+  }
+
+  function applyTheme(theme, persist) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (persist) window.localStorage.setItem("mls-theme", theme);
+    if (window.MLUtils && window.MLUtils.invalidatePalette) {
+      window.MLUtils.invalidatePalette();
+    }
+    const button = document.getElementById("theme-toggle");
+    if (button) {
+      const dark = theme === "dark";
+      button.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+      button.setAttribute("aria-pressed", String(dark));
+      button.textContent = dark ? "☀" : "☾";
+    }
+    /* Charts paint their colours into SVG attributes, so they have to be
+       redrawn rather than restyled. */
+    window.dispatchEvent(new CustomEvent("mls:themechange", { detail: { theme } }));
+  }
+
+  function buildThemeToggle() {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "theme-toggle";
+    button.id = "theme-toggle";
+    button.addEventListener("click", () => {
+      applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
+    });
+    return button;
+  }
+
   /* ── Assembly ─────────────────────────────────────────────── */
   function init() {
     const shell = document.querySelector(".site-shell");
     if (!shell) return;
 
     document.body.classList.add("has-shell");
+
+    /* Keyboard users should be able to jump past the sidebar. */
+    const skip = document.createElement("a");
+    skip.className = "skip-link";
+    skip.href = "#main-content";
+    skip.textContent = "Skip to content";
+    document.body.insertBefore(skip, document.body.firstChild);
 
     /* Sidebar toggle lives in the topbar next to the brand. */
     const topbar = shell.querySelector(".topbar");
@@ -239,6 +285,7 @@
       searchButton.id = "topbar-search";
       searchButton.innerHTML = `<span aria-hidden="true">⌕</span><span class="topbar-search-label">Search</span><kbd>⌘K</kbd>`;
       topbar.appendChild(searchButton);
+      topbar.appendChild(buildThemeToggle());
     }
 
     /* Wrap everything below the topbar so the sidebar can sit beside it. */
@@ -263,6 +310,14 @@
 
     wireSidebar();
     wirePalette();
+    applyTheme(currentTheme(), false);
+
+    /* Track the OS preference only while the user has no explicit choice. */
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    media.addEventListener("change", (event) => {
+      if (window.localStorage.getItem("mls-theme")) return;
+      applyTheme(event.matches ? "dark" : "light", false);
+    });
   }
 
   function wireSidebar() {
