@@ -331,10 +331,6 @@
 
   function renderShell() {
     const category = categoryOf(definition.category);
-    const related = catalog
-      .byCategory(definition.category)
-      .filter((entry) => entry.id !== definition.id)
-      .slice(0, 4);
     document.title = `${definition.title} | Machine Learning Studio`;
 
     /* One HTML shell serves every concept, so the per-page metadata has
@@ -410,26 +406,6 @@
         </div>
       </section>
 
-      <section class="section">
-        <div class="section-header">
-          <div>
-            <div class="eyebrow">Related Pages</div>
-            <h2>Stay in the same topic area</h2>
-          </div>
-        </div>
-        <div class="related-grid">
-          ${related
-            .map(
-              (entry) => `
-                <a class="related-card card-link" href="${algorithmHref(entry.id)}">
-                  <h3>${entry.title}</h3>
-                  <p>${entry.summary}</p>
-                </a>
-              `
-            )
-            .join("")}
-        </div>
-      </section>
     `;
 
     const navMap = {

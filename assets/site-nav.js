@@ -185,34 +185,24 @@
     return pager;
   }
 
+  /* Deliberately link-free. The sidebar carries every page, the home
+     page ends in a full index, and the palette searches everything —
+     a footer repeating 23 of those links directly below the index was
+     the same list twice. */
   function buildFooter() {
     const footer = document.createElement("footer");
     footer.className = "site-footer";
     footer.innerHTML = `
-      <div class="footer-grid">
-        <div>
-          <div class="brand">Machine Learning Studio</div>
-          <p>${ordered.length} interactive concept pages. Change the inputs, read the substituted formula, step the algorithm.</p>
+      <div class="footer-bar">
+        <div class="footer-brand">
+          <span class="brand">Machine Learning Studio</span>
+          <span>${ordered.length} interactive concepts across ${catalog.categories.length} tracks.</span>
         </div>
-        ${catalog.categories
-          .map(
-            (category) => `
-              <div>
-                <h4>${category.title}</h4>
-                <ul>
-                  ${catalog
-                    .byCategory(category.id)
-                    .slice(0, 5)
-                    .map((entry) => `<li><a href="${algorithmHref(entry.id)}">${entry.title}</a></li>`)
-                    .join("")}
-                  <li><a class="muted-link" href="${categoryHref(category)}">All ${category.title.toLowerCase()} →</a></li>
-                </ul>
-              </div>
-            `
-          )
-          .join("")}
+        <div class="footer-meta">
+          <span>Static site — no tracking, no build step.</span>
+          <span>Press <kbd>⌘K</kbd> to search from anywhere.</span>
+        </div>
       </div>
-      <p class="footer-legal">Built as a static site — no tracking, no build step. Press <kbd>⌘K</kbd> to search.</p>
     `;
     return footer;
   }

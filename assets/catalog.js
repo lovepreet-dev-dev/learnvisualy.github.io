@@ -74,14 +74,36 @@
     bannerNode.innerHTML = `
       <article class="category-banner">
         <div class="meta">
-          <span>${entries.length} algorithm pages</span>
-          <span>${category.title}</span>
+          <span>${entries.length} pages</span>
+          <span>read in order</span>
         </div>
-        <h3>${category.title} Index</h3>
+        <h3>${category.title}</h3>
         <p>${category.description}</p>
+        <p style="margin-top:14px">
+          <a class="button primary" href="${algorithmHref(entries[0].id)}">Start with ${entries[0].title}</a>
+        </p>
       </article>
     `;
-    algorithmsNode.innerHTML = entries.map(renderAlgorithmCard).join("");
+
+    /* A route rather than a grid. These pages are ordered — each one
+       links to the next — so presenting them as an unordered wall of
+       identical cards hid the one piece of structure they have. */
+    algorithmsNode.classList.remove("algorithm-list");
+    algorithmsNode.classList.add("track");
+    algorithmsNode.innerHTML = entries
+      .map(
+        (entry, index) => `
+          <a class="track-step" href="${algorithmHref(entry.id)}">
+            <span class="track-num">${String(index + 1).padStart(2, "0")}</span>
+            <span class="track-body">
+              <span class="track-title">${entry.title}</span>
+              <span class="track-summary">${entry.summary}</span>
+            </span>
+            <span class="track-go" aria-hidden="true">→</span>
+          </a>
+        `
+      )
+      .join("");
     U.qsa(".nav-links a").forEach((link) => {
       if (link.getAttribute("href") === `./${category.page}`) {
         link.setAttribute("aria-current", "page");
