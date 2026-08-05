@@ -285,7 +285,11 @@
         return window.katex.renderToString(latex, {
           displayMode: display,
           throwOnError: false,
-          output: "html",
+          /* htmlAndMathml (the default) emits a MathML copy alongside the
+             visual markup. Screen readers use the MathML; dropping it
+             leaves them reading the presentational spans as gibberish,
+             which matters a lot on a site made of formulas. */
+          output: "htmlAndMathml",
           strict: false,
         });
       } catch (error) {
@@ -374,8 +378,13 @@
 
     function cellMarkup(row, rowIndex, column) {
       const value = row[column.key];
+      /* Each generated cell needs its own accessible name — a screen
+         reader otherwise announces a wall of unlabelled "edit text". */
+      const rowName = row[columns[0].key] ?? `row ${rowIndex + 1}`;
+      const cellLabel = `${column.label} for ${rowName}`;
+
       if (column.type === "select") {
-        return `<select data-row="${rowIndex}" data-key="${column.key}">
+        return `<select aria-label="${cellLabel}" data-row="${rowIndex}" data-key="${column.key}">
           ${column.options
             .map(
               (option) =>
@@ -392,9 +401,9 @@
          browser's default input width (~150px) sets the table's min-content
          and the panel overflows. */
       if (column.type === "text") {
-        return `<input type="text" size="3" data-row="${rowIndex}" data-key="${column.key}" value="${value}" />`;
+        return `<input type="text" size="3" aria-label="${cellLabel}" data-row="${rowIndex}" data-key="${column.key}" value="${value}" />`;
       }
-      return `<input type="number" size="3" data-row="${rowIndex}" data-key="${column.key}" value="${value}"
+      return `<input type="number" size="3" aria-label="${cellLabel}" data-row="${rowIndex}" data-key="${column.key}" value="${value}"
         step="${column.step ?? 0.1}" ${column.min !== undefined ? `min="${column.min}"` : ""}
         ${column.max !== undefined ? `max="${column.max}"` : ""} />`;
     }
@@ -592,7 +601,9 @@
                       ${row
                         .map(
                           (value, colIndex) => `
-                            <td><input type="number" size="3" data-r="${rowIndex}" data-c="${colIndex}"
+                            <td><input type="number" size="3"
+                              aria-label="${config.rowLabels[rowIndex]} to ${config.colLabels[colIndex]}"
+                              data-r="${rowIndex}" data-c="${colIndex}"
                               value="${round(value, 3)}" step="${config.step ?? 0.05}"
                               min="${config.min ?? 0}" ${config.max !== undefined ? `max="${config.max}"` : ""} /></td>
                           `
@@ -705,6 +716,12 @@
   }
 
   function renderMetrics(container, metrics) {
+    /* Results change as the reader edits inputs; announce them politely
+       rather than leaving the change silent. */
+    if (!container.hasAttribute("aria-live")) {
+      container.setAttribute("aria-live", "polite");
+      container.setAttribute("aria-atomic", "false");
+    }
     container.innerHTML = metrics
       .map(
         (metric) => `

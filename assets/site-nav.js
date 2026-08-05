@@ -95,8 +95,10 @@
     overlay.hidden = true;
     overlay.innerHTML = `
       <div class="palette" role="dialog" aria-modal="true" aria-label="Search concepts">
-        <input type="text" id="palette-input" placeholder="Search concepts, categories, formulas…" autocomplete="off" />
-        <div class="palette-results" id="palette-results"></div>
+        <input type="text" id="palette-input" aria-label="Search concepts"
+               placeholder="Search concepts, categories, formulas…" autocomplete="off"
+               role="combobox" aria-expanded="true" aria-controls="palette-results" aria-autocomplete="list" />
+        <div class="palette-results" id="palette-results" role="listbox" aria-label="Search results"></div>
         <div class="palette-foot">
           <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
           <span><kbd>↵</kbd> open</span>
@@ -377,7 +379,8 @@
         ? items
             .map(
               (item, index) => `
-                <a class="palette-item${index === 0 ? " is-active" : ""}" href="${item.href}" data-index="${index}">
+                <a class="palette-item${index === 0 ? " is-active" : ""}" href="${item.href}"
+                   role="option" aria-selected="${index === 0}" data-index="${index}">
                   <span class="palette-kind">${item.kind}</span>
                   <span class="palette-title">${item.title}</span>
                   <span class="palette-sub">${item.subtitle}</span>
@@ -393,6 +396,7 @@
       active = (active + delta + items.length) % items.length;
       results.querySelectorAll(".palette-item").forEach((node, index) => {
         node.classList.toggle("is-active", index === active);
+        node.setAttribute("aria-selected", String(index === active));
         if (index === active) node.scrollIntoView({ block: "nearest" });
       });
     }
