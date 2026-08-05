@@ -23,7 +23,14 @@
     if (!Number.isFinite(value)) {
       return "n/a";
     }
-    return Number(value).toFixed(digits).replace(/\.?0+$/, "");
+    const fixed = Number(value).toFixed(digits);
+    /* Only trim trailing zeros from the fractional part. The previous
+       version stripped them unconditionally, which turned "60" into "6"
+       and "100" into "1" whenever digits was 0. */
+    if (!fixed.includes(".")) {
+      return fixed;
+    }
+    return fixed.replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function sum(values) {
@@ -116,6 +123,14 @@
       padding.bottom -
       ((y - yDomain[0]) / (yDomain[1] - yDomain[0] || 1)) *
         (height - padding.top - padding.bottom);
+    const xInvert = (px) =>
+      xDomain[0] +
+      ((px - padding.left) / (width - padding.left - padding.right || 1)) *
+        (xDomain[1] - xDomain[0]);
+    const yInvert = (py) =>
+      yDomain[0] +
+      ((height - padding.bottom - py) / (height - padding.top - padding.bottom || 1)) *
+        (yDomain[1] - yDomain[0]);
 
     for (let index = 0; index <= 5; index += 1) {
       const xValue = xDomain[0] + ((xDomain[1] - xDomain[0]) * index) / 5;
@@ -189,7 +204,392 @@
       ).textContent = options.title;
     }
 
-    return { width, height, padding, xScale, yScale };
+    return { width, height, padding, xScale, yScale, xInvert, yInvert, xDomain, yDomain };
+  }
+
+  /* ── Math typesetting (KaTeX) ─────────────────────────────────
+     tex() returns an HTML string so it can be embedded directly in the
+     template literals the lab engines already use. If KaTeX has not
+     loaded (offline, CDN blocked) it degrades to a <code> element so the
+     formula is still readable. */
+  function tex(latex, display = false) {
+    if (window.katex) {
+      try {
+        return window.katex.renderToString(latex, {
+          displayMode: display,
+          throwOnError: false,
+          output: "html",
+          strict: false,
+        });
+      } catch (error) {
+        /* fall through to the plain-text fallback */
+      }
+    }
+    const escaped = String(latex).replace(/[&<>]/g, (ch) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch])
+    );
+    return `<code class="tex-fallback">${escaped}</code>`;
+  }
+
+  /* Render a number into LaTeX with a fixed precision, keeping negative
+     numbers wrapped so they read correctly inside larger expressions. */
+  function texNum(value, digits = 3) {
+    if (!Number.isFinite(value)) return "\\text{n/a}";
+    return Number(value).toFixed(digits);
+  }
+
+  /* ── Drag interaction for scatter plots ───────────────────────
+     Makes an SVG node draggable in *data* space. onDrag receives the new
+     clamped {x, y} in domain units on every pointer move. */
+  function draggable(node, svg, chart, onDrag, onDone) {
+    node.classList.add("draggable-point");
+    node.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      const point = svg.createSVGPoint();
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+      const inverse = ctm.inverse();
+
+      function toData(clientX, clientY) {
+        point.x = clientX;
+        point.y = clientY;
+        const local = point.matrixTransform(inverse);
+        return {
+          x: clamp(chart.xInvert(local.x), chart.xDomain[0], chart.xDomain[1]),
+          y: clamp(chart.yInvert(local.y), chart.yDomain[0], chart.yDomain[1]),
+        };
+      }
+
+      function move(moveEvent) {
+        onDrag(toData(moveEvent.clientX, moveEvent.clientY));
+      }
+
+      function up(upEvent) {
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        if (onDone) onDone(toData(upEvent.clientX, upEvent.clientY));
+      }
+
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+    });
+  }
+
+  /* ── Editable data table ──────────────────────────────────────
+     The single most important building block for "edit the input data".
+     Every scatter-based lab feeds its dataset through one of these, so a
+     learner can retype a coordinate, add an outlier, delete a point, or
+     load a differently-shaped preset and watch the algorithm react.
+
+     config = {
+       columns: [{ key, label, type, step, min, max, options }],
+       rows:    [ {...} ],
+       presets: { label: rows },        optional
+       minRows, maxRows,                optional
+       newRow: () => ({...}),           optional, enables "add row"
+       onChange: (rows) => void
+     }
+     Returns { getRows, setRows, refresh }. */
+  function dataEditor(container, config) {
+    const columns = config.columns;
+    const minRows = config.minRows || 1;
+    const maxRows = config.maxRows || 40;
+    let rows = config.rows.map((row) => ({ ...row }));
+    const initial = config.rows.map((row) => ({ ...row }));
+
+    function emit() {
+      if (config.onChange) config.onChange(getRows());
+    }
+
+    function getRows() {
+      return rows.map((row) => ({ ...row }));
+    }
+
+    function cellMarkup(row, rowIndex, column) {
+      const value = row[column.key];
+      if (column.type === "select") {
+        return `<select data-row="${rowIndex}" data-key="${column.key}">
+          ${column.options
+            .map(
+              (option) =>
+                `<option value="${option.value}" ${
+                  String(option.value) === String(value) ? "selected" : ""
+                }>${option.label}</option>`
+            )
+            .join("")}
+        </select>`;
+      }
+      /* size="3" keeps the input's *intrinsic* width tiny so a fixed-layout
+         table can shrink to its container; width:100% in CSS then makes it
+         fill whatever column width it is actually given. Without this the
+         browser's default input width (~150px) sets the table's min-content
+         and the panel overflows. */
+      if (column.type === "text") {
+        return `<input type="text" size="3" data-row="${rowIndex}" data-key="${column.key}" value="${value}" />`;
+      }
+      return `<input type="number" size="3" data-row="${rowIndex}" data-key="${column.key}" value="${value}"
+        step="${column.step ?? 0.1}" ${column.min !== undefined ? `min="${column.min}"` : ""}
+        ${column.max !== undefined ? `max="${column.max}"` : ""} />`;
+    }
+
+    function render() {
+      const canDelete = rows.length > minRows;
+      const canAdd = config.newRow && rows.length < maxRows;
+      container.innerHTML = `
+        <div class="data-editor">
+          <div class="data-editor-head">
+            <h4>${config.title || "Input data"}</h4>
+            <div class="data-editor-actions">
+              ${
+                config.presets
+                  ? `<select class="preset-select" aria-label="Load a preset dataset">
+                      <option value="">Load preset…</option>
+                      ${Object.keys(config.presets)
+                        .map((name) => `<option value="${name}">${name}</option>`)
+                        .join("")}
+                    </select>`
+                  : ""
+              }
+              ${canAdd ? `<button type="button" class="mini-button add-row">+ Row</button>` : ""}
+              <button type="button" class="mini-button reset-rows">Reset</button>
+            </div>
+          </div>
+          <p class="data-editor-hint">${
+            config.hint || "Edit any value, add or remove rows — every chart, formula and step below recomputes instantly."
+          }</p>
+          <div class="data-editor-scroll">
+            <table>
+              <thead>
+                <tr>
+                  ${columns.map((column) => `<th>${column.label}</th>`).join("")}
+                  ${canDelete ? '<th class="del-cell"></th>' : ""}
+                </tr>
+              </thead>
+              <tbody>
+                ${rows
+                  .map(
+                    (row, rowIndex) => `
+                      <tr>
+                        ${columns.map((column) => `<td>${cellMarkup(row, rowIndex, column)}</td>`).join("")}
+                        ${
+                          canDelete
+                            ? `<td class="del-cell"><button type="button" class="mini-button danger delete-row" data-row="${rowIndex}" aria-label="Delete row ${rowIndex + 1}">×</button></td>`
+                            : ""
+                        }
+                      </tr>
+                    `
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+
+      qsa("input, select", container).forEach((field) => {
+        if (field.classList.contains("preset-select")) return;
+        const handler = () => {
+          const rowIndex = Number(field.dataset.row);
+          const key = field.dataset.key;
+          const column = columns.find((entry) => entry.key === key);
+          let value = field.value;
+          if (!column || column.type === "number" || column.type === undefined) {
+            value = Number(value);
+            if (!Number.isFinite(value)) return;
+            if (column && column.min !== undefined) value = Math.max(column.min, value);
+            if (column && column.max !== undefined) value = Math.min(column.max, value);
+          }
+          rows[rowIndex][key] = value;
+          emit();
+        };
+        field.addEventListener(field.tagName === "SELECT" ? "change" : "input", handler);
+      });
+
+      const presetSelect = qs(".preset-select", container);
+      if (presetSelect) {
+        presetSelect.addEventListener("change", () => {
+          const preset = config.presets[presetSelect.value];
+          if (!preset) return;
+          rows = preset.map((row) => ({ ...row }));
+          render();
+          emit();
+        });
+      }
+
+      const addButton = qs(".add-row", container);
+      if (addButton) {
+        addButton.addEventListener("click", () => {
+          rows.push(config.newRow(rows));
+          render();
+          emit();
+        });
+      }
+
+      qs(".reset-rows", container).addEventListener("click", () => {
+        rows = initial.map((row) => ({ ...row }));
+        render();
+        emit();
+      });
+
+      qsa(".delete-row", container).forEach((button) => {
+        button.addEventListener("click", () => {
+          rows.splice(Number(button.dataset.row), 1);
+          render();
+          emit();
+        });
+      });
+    }
+
+    render();
+
+    return {
+      getRows,
+      setRows(next, silent) {
+        rows = next.map((row) => ({ ...row }));
+        render();
+        if (!silent) emit();
+      },
+      /* Update one cell without rebuilding the table. Used while a point
+         is being dragged so the numbers track the cursor smoothly and
+         the input the learner is looking at does not lose focus. */
+      setCell(rowIndex, key, value) {
+        if (!rows[rowIndex]) return;
+        rows[rowIndex][key] = value;
+        const field = qs(`[data-row="${rowIndex}"][data-key="${key}"]`, container);
+        if (field) field.value = typeof value === "number" ? round(value, 2) : value;
+      },
+      indexOf(predicate) {
+        return rows.findIndex(predicate);
+      },
+      refresh: render,
+    };
+  }
+
+  /* Coalesce rapid calls (pointermove, range input) into one paint. */
+  function rafThrottle(fn) {
+    let queued = false;
+    let lastArgs = null;
+    return function throttled(...args) {
+      lastArgs = args;
+      if (queued) return;
+      queued = true;
+      window.requestAnimationFrame(() => {
+        queued = false;
+        fn(...lastArgs);
+      });
+    };
+  }
+
+  /* ── Editable matrix ──────────────────────────────────────────
+     Used by the graphical-model labs so learners can retype a full
+     transition matrix, emission table or CPT instead of nudging a single
+     scalar. rowStochastic re-normalises each row to sum to 1. */
+  function matrixEditor(container, config) {
+    let values = config.values.map((row) => [...row]);
+    const initial = config.values.map((row) => [...row]);
+
+    function normalized() {
+      if (!config.rowStochastic) return values.map((row) => [...row]);
+      return values.map((row) => {
+        const total = row.reduce((acc, value) => acc + Math.max(value, 0), 0);
+        if (total <= 0) return row.map(() => 1 / row.length);
+        return row.map((value) => Math.max(value, 0) / total);
+      });
+    }
+
+    function emit() {
+      if (config.onChange) config.onChange(normalized(), values.map((row) => [...row]));
+    }
+
+    function render() {
+      container.innerHTML = `
+        <div class="matrix-editor">
+          <div class="data-editor-head">
+            <h4>${config.title}</h4>
+            <button type="button" class="mini-button reset-matrix">Reset</button>
+          </div>
+          ${config.hint ? `<p class="data-editor-hint">${config.hint}</p>` : ""}
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                ${config.colLabels.map((label) => `<th>${label}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${values
+                .map(
+                  (row, rowIndex) => `
+                    <tr>
+                      <th scope="row">${config.rowLabels[rowIndex]}</th>
+                      ${row
+                        .map(
+                          (value, colIndex) => `
+                            <td><input type="number" size="3" data-r="${rowIndex}" data-c="${colIndex}"
+                              value="${round(value, 3)}" step="${config.step ?? 0.05}"
+                              min="${config.min ?? 0}" ${config.max !== undefined ? `max="${config.max}"` : ""} /></td>
+                          `
+                        )
+                        .join("")}
+                    </tr>
+                  `
+                )
+                .join("")}
+            </tbody>
+          </table>
+          ${
+            config.rowStochastic
+              ? `<p class="data-editor-hint subtle">Rows are re-normalised to sum to 1 automatically.</p>`
+              : ""
+          }
+        </div>
+      `;
+
+      qsa("input", container).forEach((field) => {
+        field.addEventListener("input", () => {
+          const value = Number(field.value);
+          if (!Number.isFinite(value)) return;
+          values[Number(field.dataset.r)][Number(field.dataset.c)] = value;
+          emit();
+        });
+      });
+
+      qs(".reset-matrix", container).addEventListener("click", () => {
+        values = initial.map((row) => [...row]);
+        render();
+        emit();
+      });
+    }
+
+    render();
+
+    return {
+      get: normalized,
+      getRaw: () => values.map((row) => [...row]),
+      set(next, silent) {
+        values = next.map((row) => [...row]);
+        render();
+        if (!silent) emit();
+      },
+    };
+  }
+
+  /* Convenience: render an array of labelled formula rows where each
+     expression is LaTeX. Keeps the "formula, then the same formula with
+     your numbers in it" pattern consistent across every lab. */
+  function renderSubstitution(rows) {
+    return `<div class="substitution">${rows
+      .map(
+        (row) => `
+          <div class="substitution-row">
+            <span class="substitution-label">${row.label}</span>
+            <span class="substitution-expr">${tex(row.tex)}</span>
+            ${row.value !== undefined ? `<span class="substitution-value">${row.value}</span>` : ""}
+          </div>
+          ${row.note ? `<p class="substitution-note">${row.note}</p>` : ""}
+        `
+      )
+      .join("")}</div>`;
   }
 
   function pathFromPoints(points, xScale, yScale) {
@@ -395,13 +795,16 @@
     argMax,
     clamp,
     clear,
+    dataEditor,
     distance,
     dot,
+    draggable,
     gaussianPdf,
     inverse2x2,
     jacobiEigen,
     linspace,
     makeChart,
+    matrixEditor,
     matVec,
     mean,
     median,
@@ -410,14 +813,18 @@
     pathFromPoints,
     qsa,
     qs,
+    rafThrottle,
     renderMetrics,
     renderSteps,
+    renderSubstitution,
     round,
     sampleNormal,
     seededRandom,
     sigmoid,
     sum,
     svgEl,
+    tex,
+    texNum,
     variance,
     viewBoxSize,
   };
