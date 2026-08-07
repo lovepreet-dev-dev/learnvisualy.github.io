@@ -199,8 +199,9 @@
           <span>${ordered.length} interactive concepts across ${catalog.categories.length} tracks.</span>
         </div>
         <div class="footer-meta">
-          <span>Static site — no tracking, no build step.</span>
+          <span>Static site — no accounts, no build step.</span>
           <span>Press <kbd>⌘K</kbd> to search from anywhere.</span>
+          <span><a href="${rootPrefix}privacy.html">Privacy Policy</a></span>
         </div>
       </div>
     `;

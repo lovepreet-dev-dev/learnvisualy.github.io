@@ -1,0 +1,8 @@
+# Authorized Digital Sellers for learnvisually.fun
+# https://iabtechlab.com/ads-txt/
+#
+# REPLACE pub-0000000000000000 BELOW with your own AdSense publisher ID
+# (AdSense > Account > Settings > Account information), then redeploy.
+# Until that ID is real, this file authorises nobody and AdSense will
+# report "ads.txt file contains no valid entries" in your account.
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

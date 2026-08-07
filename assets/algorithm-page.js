@@ -329,6 +329,51 @@
     return circle;
   }
 
+  /* Search engines get one shell for all 42 concepts, so the breadcrumb
+     trail and the page's subject have to be described per render too. */
+  function writeStructuredData(canonical, category) {
+    const site = "https://www.learnvisually.fun";
+    const graph = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: category.title,
+              item: `${site}/pages/${category.page}`,
+            },
+            { "@type": "ListItem", position: 3, name: definition.title, item: canonical },
+          ],
+        },
+        {
+          "@type": "LearningResource",
+          name: definition.title,
+          description: definition.summary,
+          url: canonical,
+          inLanguage: "en",
+          learningResourceType: "Interactive concept page",
+          educationalLevel: "Undergraduate",
+          isAccessibleForFree: true,
+          image: `${site}/assets/og-image.jpg`,
+          about: { "@type": "Thing", name: category.title },
+          publisher: { "@type": "EducationalOrganization", name: "Machine Learning Studio", url: `${site}/` },
+        },
+      ],
+    };
+    let node = document.getElementById("ld-json");
+    if (!node) {
+      node = document.createElement("script");
+      node.type = "application/ld+json";
+      node.id = "ld-json";
+      document.head.appendChild(node);
+    }
+    node.textContent = JSON.stringify(graph);
+  }
+
   function renderShell() {
     const category = categoryOf(definition.category);
     document.title = `${definition.title} | Machine Learning Studio`;
@@ -336,7 +381,7 @@
     /* One HTML shell serves every concept, so the per-page metadata has
        to be written at render time or every page would share the same
        description and share card. */
-    const canonical = `https://learnvisualy.github.io/pages/algorithm.html?id=${definition.id}`;
+    const canonical = `https://www.learnvisually.fun/pages/algorithm.html?id=${definition.id}`;
     const metaMap = {
       'meta[name="description"]': ["content", definition.summary],
       'meta[property="og:title"]': ["content", `${definition.title} | Machine Learning Studio`],
@@ -350,6 +395,8 @@
       const node = document.head.querySelector(selector);
       if (node) node.setAttribute(attribute, value);
     });
+
+    writeStructuredData(canonical, category);
 
     root.innerHTML = `
       <section class="page-hero algorithm-shell">

@@ -1,291 +1,297 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://learnvisualy.github.io/</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/introduction.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/introduction.html</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/classification.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/classification.html</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/graphical-models.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/graphical-models.html</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/clustering.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/clustering.html</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/neural.html</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/neural.html</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=ml-overview</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=ml-overview</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=different-forms-of-learning</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=different-forms-of-learning</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=generative-learning</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=generative-learning</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=gaussian-parameter-estimation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=gaussian-parameter-estimation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=maximum-likelihood-estimation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=maximum-likelihood-estimation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=map-estimation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=map-estimation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=bayesian-estimation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=bayesian-estimation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=bias-and-variance-of-estimators</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=bias-and-variance-of-estimators</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=missing-and-noisy-features</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=missing-and-noisy-features</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=nonparametric-density-estimation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=nonparametric-density-estimation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=applications-and-software-tools</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=applications-and-software-tools</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=nearest-neighbour</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=nearest-neighbour</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=decision-trees</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=decision-trees</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=linear-discriminant-analysis</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=linear-discriminant-analysis</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=logistic-regression</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=logistic-regression</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=perceptron</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=perceptron</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=large-margin-classification</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=large-margin-classification</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=kernel-methods</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=kernel-methods</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=support-vector-machines</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=support-vector-machines</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=classification-and-regression-trees</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=classification-and-regression-trees</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=bayesian-networks</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=bayesian-networks</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=conditional-independence</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=conditional-independence</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=markov-random-fields</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=markov-random-fields</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=inference-in-graphical-models</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=inference-in-graphical-models</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=belief-propagation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=belief-propagation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=markov-models</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=markov-models</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=hidden-markov-models</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=hidden-markov-models</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=decoding-states-from-observations</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=decoding-states-from-observations</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=learning-hmm-parameters</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=learning-hmm-parameters</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=partition-based-clustering</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=partition-based-clustering</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=k-means</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=k-means</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=k-medoids</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=k-medoids</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=hierarchical-clustering</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=hierarchical-clustering</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=agglomerative-clustering</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=agglomerative-clustering</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=divisive-clustering</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=divisive-clustering</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=distance-measures</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=distance-measures</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=dbscan</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=dbscan</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=spectral-clustering</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=spectral-clustering</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=geometric-transformations</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=geometric-transformations</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=activation-functions</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=activation-functions</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=gradient-descent</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=gradient-descent</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://learnvisualy.github.io/pages/algorithm.html?id=backpropagation</loc>
-    <lastmod>2026-08-05</lastmod>
+    <loc>https://www.learnvisually.fun/pages/algorithm.html?id=backpropagation</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.learnvisually.fun/privacy.html</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
   </url>
 </urlset>
