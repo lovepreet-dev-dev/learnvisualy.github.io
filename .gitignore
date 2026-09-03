@@ -11,3 +11,8 @@ node_modules/
 .vscode/
 .idea/
 .claude/
+
+# Promo video renders and their recording scripts. These are working files,
+# not part of the published site — committing them ships ~24 MB of MP4 to
+# the live deploy for no reason.
+ad/
